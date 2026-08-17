@@ -1,4 +1,4 @@
-import { formatUsd, truncateHex } from "@/channels/format";
+import { formatUsd } from "@/channels/format";
 import type { SessionDetail } from "@/channels/types";
 import { Card, CardContent } from "@/components/ui/card";
 
@@ -11,8 +11,8 @@ function mermaidText(value: string): string {
 function buildChart(session: SessionDetail): string {
   const lines = [
     "sequenceDiagram",
-    `  participant Client as Client<br/>${mermaidText(truncateHex(session.payer))}`,
-    `  participant Server as Server<br/>${mermaidText(truncateHex(session.payee))}`,
+    "  participant Client",
+    "  participant Server",
     "  participant Tempo",
   ];
 
@@ -20,7 +20,7 @@ function buildChart(session: SessionDetail): string {
   const topUps = session.events.filter((event) => event.type === "top_up");
   const settlements = session.events.filter(
     (event) => event.type === "settled",
-  ).length;
+  );
   const closed = session.events.find((event) => event.type === "closed");
 
   lines.push(
@@ -41,11 +41,19 @@ function buildChart(session: SessionDetail): string {
 
   lines.push("  Client->>Server: request + voucher");
 
-  if (settlements > 0) {
-    const count = settlements > 1 ? `${settlements}× · ` : "";
-    lines.push(
-      `  Server->>Tempo: ${mermaidText(`settle · ${count}$${formatUsd(session.settled)} total`)}`,
-    );
+  if (settlements.length > 0) {
+    for (const event of settlements) {
+      lines.push(
+        `  Server->>Tempo: ${mermaidText(`settle · $${formatUsd(event.amounts.deltaPaid ?? "0")}`)}`,
+      );
+    }
+  } else {
+    const closeSettled = closed?.amounts.settledToPayee ?? "0";
+    if (Number.parseFloat(closeSettled) > 0) {
+      lines.push(
+        `  Server->>Tempo: ${mermaidText(`settle · $${formatUsd(closeSettled)}`)}`,
+      );
+    }
   }
 
   if (session.status === "closing") {

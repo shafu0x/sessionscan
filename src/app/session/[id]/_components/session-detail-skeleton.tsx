@@ -4,13 +4,22 @@ import { Skeleton } from "@/components/ui/skeleton";
 export function SessionDetailSkeleton() {
   return (
     <div className="flex flex-col gap-4 md:gap-6" aria-hidden>
-      <Card>
-        <CardContent className="flex flex-col gap-4">
-          <Skeleton className="h-4 w-32" />
-          <Skeleton className="h-10 w-40" />
-          <Skeleton className="h-4 w-56" />
-        </CardContent>
-      </Card>
+      <div className="grid grid-cols-1 gap-4 md:grid-cols-4">
+        <Card className="md:col-span-2">
+          <CardContent className="flex flex-col gap-2">
+            <Skeleton className="h-4 w-24" />
+            <Skeleton className="h-10 w-36" />
+          </CardContent>
+        </Card>
+        {["client", "server"].map((key) => (
+          <Card key={key}>
+            <CardContent className="flex flex-col gap-2">
+              <Skeleton className="h-4 w-20" />
+              <Skeleton className="h-4 w-28" />
+            </CardContent>
+          </Card>
+        ))}
+      </div>
       <Card>
         <CardContent>
           <Skeleton className="h-64 w-full rounded-xl" />
