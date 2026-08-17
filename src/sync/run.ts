@@ -28,6 +28,7 @@ export async function runSync() {
     const rows = await fetchLogs(fromBlock, fromLogIndex);
     pages += 1;
     events += rows.length;
+    console.log(`[sync] picked up ${rows.length} items`);
 
     if (rows.length === 0) break;
 
