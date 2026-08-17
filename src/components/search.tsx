@@ -82,7 +82,7 @@ export function Search() {
       <button
         type="button"
         onClick={() => setOpen(true)}
-        className="flex h-8 w-64 items-center gap-2 rounded-lg border border-input bg-transparent px-2.5 text-sm text-muted-foreground transition-colors hover:bg-muted/50 dark:bg-input/30"
+        className="flex h-8 w-64 items-center gap-2 rounded-lg bg-card px-2.5 text-sm text-muted-foreground ring-1 ring-foreground/10 transition-colors hover:bg-muted/50"
       >
         <SearchIcon className="size-4 shrink-0 opacity-50" aria-hidden />
         <span className="flex-1 truncate text-left">Search sessions…</span>
@@ -108,7 +108,7 @@ export function Search() {
           <CommandInput
             value={query}
             onValueChange={setQuery}
-            placeholder="Search by session ID, payer, or payee (0x…)"
+            placeholder="Search by session ID, payer, or payee"
             onKeyDown={(event) => {
               if (event.key === "Enter" && SESSION_ID_RE.test(query.trim())) {
                 event.preventDefault();
@@ -119,7 +119,7 @@ export function Search() {
           <CommandList>
             {query.trim() === "" ? (
               <p className="px-3 py-6 text-center text-muted-foreground text-sm">
-                Search by session ID, payer, or payee (0x…)
+                Search by session ID, payer, or payee
               </p>
             ) : fetched && deferredResults.length === 0 ? (
               <CommandEmpty>No sessions found</CommandEmpty>

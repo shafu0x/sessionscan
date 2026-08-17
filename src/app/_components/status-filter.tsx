@@ -53,8 +53,7 @@ export function StatusFilter({
       }}
     >
       <SelectTrigger
-        size="sm"
-        className="text-xs"
+        className="border-0 bg-card text-xs ring-1 ring-foreground/10 dark:bg-card dark:hover:bg-muted/50"
         aria-label="Filter by status"
       >
         <SelectValue />
