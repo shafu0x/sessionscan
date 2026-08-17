@@ -1,20 +1,23 @@
-import { DollarSign } from "lucide-react";
-
+import { formatCompact } from "@/channels/format";
 import type { DayPoint } from "@/channels/types";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 import { ChartDynamic } from "./chart-dynamic";
 
 export function VolumeChart({ data }: { data: DayPoint[] }) {
+  const total = data.reduce((sum, point) => sum + point.value, 0);
+
   return (
     <Card>
       <CardHeader>
-        <CardTitle className="flex items-center gap-2 text-base">
-          <DollarSign className="size-4 text-muted-foreground" aria-hidden />
+        <CardTitle className="text-sm font-normal text-muted-foreground">
           Volume
         </CardTitle>
+        <p className="text-2xl font-semibold tracking-tight">
+          ${formatCompact(total)}
+        </p>
       </CardHeader>
-      <CardContent className="h-48">
+      <CardContent className="h-16">
         <ChartDynamic data={data} valueLabel="Volume" />
       </CardContent>
     </Card>
