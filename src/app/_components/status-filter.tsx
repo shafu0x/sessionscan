@@ -1,0 +1,72 @@
+"use client";
+
+import { Circle, CircleCheck, CircleDot, Clock } from "lucide-react";
+import { useRouter } from "next/navigation";
+
+import { tableHref } from "@/channels/format";
+import type {
+  Channel,
+  SessionSort,
+  SortDir,
+  TimeRange,
+} from "@/channels/types";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+
+const STATUS_OPTIONS = [
+  { value: "all", label: "All", icon: CircleDot },
+  { value: "open", label: "Open", icon: Circle },
+  { value: "closing", label: "Closing", icon: Clock },
+  { value: "closed", label: "Closed", icon: CircleCheck },
+] as const;
+
+export function StatusFilter({
+  sort,
+  dir,
+  status,
+  range,
+}: {
+  sort: SessionSort;
+  dir: SortDir;
+  status: Channel["status"] | null;
+  range: TimeRange;
+}) {
+  const router = useRouter();
+
+  return (
+    <Select
+      value={status ?? "all"}
+      onValueChange={(value) => {
+        router.push(
+          tableHref({
+            sort,
+            dir,
+            status: value === "all" ? null : (value as Channel["status"]),
+            range,
+          }),
+        );
+      }}
+    >
+      <SelectTrigger
+        size="sm"
+        className="text-xs"
+        aria-label="Filter by status"
+      >
+        <SelectValue />
+      </SelectTrigger>
+      <SelectContent>
+        {STATUS_OPTIONS.map((option) => (
+          <SelectItem key={option.value} value={option.value}>
+            <option.icon className="size-3" aria-hidden />
+            {option.label}
+          </SelectItem>
+        ))}
+      </SelectContent>
+    </Select>
+  );
+}

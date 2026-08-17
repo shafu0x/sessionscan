@@ -9,7 +9,7 @@ export default function HomeLoading() {
     <>
       <div className="flex flex-wrap items-center justify-between gap-2">
         <SessionBreadcrumbs />
-        <Skeleton className="h-8 w-64 rounded-lg" />
+        <Skeleton className="h-8 w-80 rounded-lg" />
       </div>
       <ChartsRowSkeleton />
       <SessionsTableSkeleton />

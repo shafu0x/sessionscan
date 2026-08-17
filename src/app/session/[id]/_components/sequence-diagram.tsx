@@ -83,11 +83,7 @@ export function SequenceDiagram({ chart }: { chart: string }) {
       )}
       <pre
         ref={nodeRef}
-        className={
-          ready
-            ? "[&_svg]:mx-auto [&_svg]:max-w-full"
-            : "sr-only"
-        }
+        className={ready ? "[&_svg]:mx-auto [&_svg]:max-w-full" : "sr-only"}
       />
     </div>
   );

@@ -63,13 +63,6 @@ function HeaderLabel({
 
 type StatusFilter = Channel["status"] | null;
 
-const STATUS_FILTERS: { value: StatusFilter; label: string }[] = [
-  { value: null, label: "All" },
-  { value: "open", label: "Open" },
-  { value: "closing", label: "Closing" },
-  { value: "closed", label: "Closed" },
-];
-
 function SortableHeaderLabel({
   column,
   icon: Icon,
@@ -128,21 +121,6 @@ export async function SessionsTable({
   return (
     <Card>
       <CardContent className="flex flex-col gap-4">
-        <div className="flex flex-wrap items-center gap-2">
-          {STATUS_FILTERS.map((filter) => (
-            <Link
-              key={filter.label}
-              href={tableHref({ sort, dir, status: filter.value, range })}
-              className={
-                filter.value === status
-                  ? "rounded-md bg-secondary px-3 py-1.5 text-secondary-foreground text-xs"
-                  : "rounded-md px-3 py-1.5 text-muted-foreground text-xs hover:text-foreground"
-              }
-            >
-              {filter.label}
-            </Link>
-          ))}
-        </div>
         {paginated.totalItems === 0 ? (
           <div className="flex flex-col items-center gap-2 py-8 text-muted-foreground">
             <Inbox className="size-4" aria-hidden />
@@ -184,22 +162,22 @@ export async function SessionsTable({
                 </Link>
               ))}
             </div>
-            <Table className="hidden md:table">
+            <Table className="hidden table-fixed md:table">
               <TableHeader>
                 <TableRow>
-                  <TableHead>
+                  <TableHead className="w-[11%]">
                     <HeaderLabel icon={CircleDot}>Status</HeaderLabel>
                   </TableHead>
-                  <TableHead>
+                  <TableHead className="w-[14%]">
                     <HeaderLabel icon={Hash}>Session</HeaderLabel>
                   </TableHead>
-                  <TableHead>
+                  <TableHead className="w-[14%]">
                     <HeaderLabel icon={User}>Payer</HeaderLabel>
                   </TableHead>
-                  <TableHead>
+                  <TableHead className="w-[14%]">
                     <HeaderLabel icon={Wallet}>Payee</HeaderLabel>
                   </TableHead>
-                  <TableHead className="text-right">
+                  <TableHead className="w-[14%] text-right">
                     <SortableHeaderLabel
                       column="deposit"
                       icon={ArrowDownToLine}
@@ -212,7 +190,7 @@ export async function SessionsTable({
                       Deposit
                     </SortableHeaderLabel>
                   </TableHead>
-                  <TableHead className="text-right">
+                  <TableHead className="w-[14%] text-right">
                     <SortableHeaderLabel
                       column="settled"
                       icon={ArrowUpFromLine}
@@ -225,7 +203,7 @@ export async function SessionsTable({
                       Settled
                     </SortableHeaderLabel>
                   </TableHead>
-                  <TableHead>
+                  <TableHead className="w-[19%]">
                     <SortableHeaderLabel
                       column="opened"
                       icon={Clock}
