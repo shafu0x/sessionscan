@@ -22,20 +22,14 @@ export function TablePagination({
     <div className="flex justify-center border-t pt-4 text-muted-foreground text-sm">
       <div className="flex items-center gap-2">
         {currentPage > 1 ? (
-          <Button asChild variant="outline" size="sm" className="min-h-11">
+          <Button asChild variant="outline" size="sm">
             <Link href={hrefForPage(currentPage - 1)} scroll={false}>
               <ChevronLeftIcon aria-hidden />
               Previous
             </Link>
           </Button>
         ) : (
-          <Button
-            type="button"
-            variant="outline"
-            size="sm"
-            disabled
-            className="min-h-11"
-          >
+          <Button type="button" variant="outline" size="sm" disabled>
             <ChevronLeftIcon aria-hidden />
             Previous
           </Button>
@@ -44,20 +38,14 @@ export function TablePagination({
           {currentPage} / {pageCount}
         </span>
         {currentPage < pageCount ? (
-          <Button asChild variant="outline" size="sm" className="min-h-11">
+          <Button asChild variant="outline" size="sm">
             <Link href={hrefForPage(currentPage + 1)} scroll={false}>
               Next
               <ChevronRightIcon aria-hidden />
             </Link>
           </Button>
         ) : (
-          <Button
-            type="button"
-            variant="outline"
-            size="sm"
-            disabled
-            className="min-h-11"
-          >
+          <Button type="button" variant="outline" size="sm" disabled>
             Next
             <ChevronRightIcon aria-hidden />
           </Button>

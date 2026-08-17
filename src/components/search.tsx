@@ -82,7 +82,7 @@ export function Search() {
       <button
         type="button"
         onClick={() => setOpen(true)}
-        className="flex h-8 w-64 items-center gap-2 rounded-lg bg-card px-2.5 text-sm text-muted-foreground ring-1 ring-foreground/10 transition-colors hover:bg-muted/50"
+        className="hidden h-8 w-64 items-center gap-2 rounded-lg bg-card px-2.5 text-sm text-muted-foreground ring-1 ring-foreground/10 transition-colors hover:bg-muted/50 md:flex"
       >
         <SearchIcon className="size-4 shrink-0 opacity-50" aria-hidden />
         <span className="flex-1 truncate text-left">Search sessions…</span>

@@ -119,8 +119,8 @@ export async function SessionsTable({
   const paginated = await loadSessionsPage(page, sort, dir, status, range);
 
   return (
-    <Card>
-      <CardContent className="flex flex-col gap-4">
+    <Card className="py-0 pb-(--card-spacing)">
+      <CardContent className="flex flex-col">
         {paginated.totalItems === 0 ? (
           <div className="flex flex-col items-center gap-2 py-8 text-muted-foreground">
             <Inbox className="size-4" aria-hidden />
@@ -165,19 +165,19 @@ export async function SessionsTable({
             <Table className="hidden table-fixed md:table">
               <TableHeader>
                 <TableRow>
-                  <TableHead className="w-[11%]">
+                  <TableHead className="w-28">
                     <HeaderLabel icon={CircleDot}>Status</HeaderLabel>
                   </TableHead>
-                  <TableHead className="w-[14%]">
+                  <TableHead>
                     <HeaderLabel icon={Hash}>Session</HeaderLabel>
                   </TableHead>
-                  <TableHead className="w-[14%]">
+                  <TableHead>
                     <HeaderLabel icon={User}>Payer</HeaderLabel>
                   </TableHead>
-                  <TableHead className="w-[14%]">
+                  <TableHead>
                     <HeaderLabel icon={Wallet}>Payee</HeaderLabel>
                   </TableHead>
-                  <TableHead className="w-[14%] text-right">
+                  <TableHead className="w-24 text-right">
                     <SortableHeaderLabel
                       column="deposit"
                       icon={ArrowDownToLine}
@@ -190,7 +190,7 @@ export async function SessionsTable({
                       Deposit
                     </SortableHeaderLabel>
                   </TableHead>
-                  <TableHead className="w-[14%] text-right">
+                  <TableHead className="w-24 text-right">
                     <SortableHeaderLabel
                       column="settled"
                       icon={ArrowUpFromLine}
@@ -203,7 +203,7 @@ export async function SessionsTable({
                       Settled
                     </SortableHeaderLabel>
                   </TableHead>
-                  <TableHead className="w-[19%] text-right">
+                  <TableHead className="w-32 text-right">
                     <HeaderLabel icon={Clock} align="right">
                       Opened
                     </HeaderLabel>
