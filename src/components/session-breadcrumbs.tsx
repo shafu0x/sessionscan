@@ -24,7 +24,9 @@ export function SessionBreadcrumbs({
               MPP Sessions
             </BreadcrumbLink>
           ) : (
-            <BreadcrumbPage className="font-bold text-base">MPP Sessions</BreadcrumbPage>
+            <BreadcrumbPage className="font-bold text-base">
+              MPP Sessions
+            </BreadcrumbPage>
           )}
         </BreadcrumbItem>
         {id ? (
