@@ -20,9 +20,11 @@ export function SessionBreadcrumbs({
       <BreadcrumbList className="flex-wrap">
         <BreadcrumbItem>
           {id ? (
-            <BreadcrumbLink href="/">MPP Sessions</BreadcrumbLink>
+            <BreadcrumbLink href="/" className="font-bold text-base">
+              MPP Sessions
+            </BreadcrumbLink>
           ) : (
-            <BreadcrumbPage>MPP Sessions</BreadcrumbPage>
+            <BreadcrumbPage className="font-bold text-base">MPP Sessions</BreadcrumbPage>
           )}
         </BreadcrumbItem>
         {id ? (
