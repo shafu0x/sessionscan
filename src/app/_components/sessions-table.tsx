@@ -119,7 +119,7 @@ export async function SessionsTable({
   const paginated = await loadSessionsPage(page, sort, dir, status, range);
 
   return (
-    <Card className="py-0 pb-(--card-spacing)">
+    <Card className="py-0 pt-(--card-spacing) pb-(--card-spacing) md:pt-0">
       <CardContent className="flex flex-col">
         {paginated.totalItems === 0 ? (
           <div className="flex flex-col items-center gap-2 py-8 text-muted-foreground">
@@ -146,18 +146,14 @@ export async function SessionsTable({
                       {formatRelativeTime(new Date(session.openedAt))}
                     </time>
                   </div>
-                  <p className="truncate font-mono text-sm" translate="no">
-                    {truncateHex(session.channelId)}
-                  </p>
-                  <div className="flex justify-between gap-2 text-muted-foreground text-xs">
-                    <span className="truncate font-mono" translate="no">
-                      {truncateHex(session.payer)} →{" "}
-                      {truncateHex(session.payee)}
-                    </span>
-                    <span className="font-mono tabular-nums text-foreground">
+                  <div className="flex items-center justify-between gap-2">
+                    <p className="truncate font-mono text-sm" translate="no">
+                      {truncateHex(session.channelId)}
+                    </p>
+                    <p className="shrink-0 font-mono text-xs tabular-nums">
                       ${formatUsd(session.settled)} / $
                       {formatUsd(session.deposit)}
-                    </span>
+                    </p>
                   </div>
                 </Link>
               ))}

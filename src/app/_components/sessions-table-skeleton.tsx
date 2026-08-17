@@ -3,7 +3,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 
 export function SessionsTableSkeleton() {
   return (
-    <Card className="py-0 pb-(--card-spacing)" aria-hidden>
+    <Card className="py-0 pt-(--card-spacing) pb-(--card-spacing) md:pt-0" aria-hidden>
       <CardContent className="flex flex-col gap-3">
         {["a", "b", "c", "d", "e", "f", "g", "h", "i", "j"].map((key) => (
           <Skeleton key={key} className="h-20 w-full rounded-lg md:h-10" />
