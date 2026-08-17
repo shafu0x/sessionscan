@@ -15,7 +15,6 @@ import {
   SelectContent,
   SelectItem,
   SelectTrigger,
-  SelectValue,
 } from "@/components/ui/select";
 
 const STATUS_OPTIONS = [
@@ -37,6 +36,9 @@ export function StatusFilter({
   range: TimeRange;
 }) {
   const router = useRouter();
+  const current =
+    STATUS_OPTIONS.find((option) => option.value === (status ?? "all")) ??
+    STATUS_OPTIONS[0];
 
   return (
     <Select
@@ -56,7 +58,10 @@ export function StatusFilter({
         className="border-0 bg-card text-xs ring-1 ring-foreground/10 dark:bg-card dark:hover:bg-muted/50"
         aria-label="Filter by status"
       >
-        <SelectValue />
+        <span className="flex items-center gap-1.5">
+          <current.icon className="size-3" aria-hidden />
+          {current.label}
+        </span>
       </SelectTrigger>
       <SelectContent>
         {STATUS_OPTIONS.map((option) => (

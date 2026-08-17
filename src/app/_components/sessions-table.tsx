@@ -203,8 +203,10 @@ export async function SessionsTable({
                       Settled
                     </SortableHeaderLabel>
                   </TableHead>
-                  <TableHead className="w-[19%]">
-                    <HeaderLabel icon={Clock}>Opened</HeaderLabel>
+                  <TableHead className="w-[19%] text-right">
+                    <HeaderLabel icon={Clock} align="right">
+                      Opened
+                    </HeaderLabel>
                   </TableHead>
                 </TableRow>
               </TableHeader>
@@ -244,7 +246,7 @@ export async function SessionsTable({
                     <TableCell className="text-right font-mono tabular-nums">
                       ${formatUsd(session.settled)}
                     </TableCell>
-                    <TableCell className="text-muted-foreground text-sm">
+                    <TableCell className="text-right text-muted-foreground text-sm">
                       <time
                         dateTime={session.openedAt}
                         title={session.openedAt}
