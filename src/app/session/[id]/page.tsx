@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { Suspense } from "react";
 
-import { truncateHex } from "@/channels/format";
+import { pageFromParam, truncateHex } from "@/channels/format";
 import { loadSessionData } from "@/channels/queries";
 import { SessionBreadcrumbs } from "@/components/session-breadcrumbs";
 
@@ -22,16 +22,19 @@ export async function generateMetadata({
 
 export default async function SessionPage({
   params,
+  searchParams,
 }: {
   params: Promise<{ id: string }>;
+  searchParams: Promise<{ page?: string }>;
 }) {
   const { id } = await params;
+  const { page } = await searchParams;
 
   return (
     <>
       <SessionBreadcrumbs id={id} />
       <Suspense fallback={<SessionDetailSkeleton />}>
-        <SessionBody id={id} />
+        <SessionBody id={id} page={pageFromParam(page)} />
       </Suspense>
     </>
   );

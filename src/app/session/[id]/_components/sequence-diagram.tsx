@@ -61,6 +61,13 @@ export function SequenceDiagram({ chart }: { chart: string }) {
       });
 
       await mermaid.run({ nodes: [node] });
+      const svg = node.querySelector("svg");
+      const height = svg?.viewBox.baseVal.height;
+      if (svg && height) {
+        for (const line of svg.querySelectorAll("line.actor-line")) {
+          line.setAttribute("y2", String(height));
+        }
+      }
       if (!cancelled) setReady(true);
     });
 
@@ -78,7 +85,7 @@ export function SequenceDiagram({ chart }: { chart: string }) {
         ref={nodeRef}
         className={
           ready
-            ? "overflow-x-auto [&_svg]:mx-auto [&_svg]:max-w-full"
+            ? "[&_svg]:mx-auto [&_svg]:max-w-full"
             : "sr-only"
         }
       />

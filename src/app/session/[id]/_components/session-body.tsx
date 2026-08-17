@@ -8,7 +8,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { SessionSequence } from "./session-sequence";
 import { SessionTimeline } from "./session-timeline";
 
-export async function SessionBody({ id }: { id: string }) {
+export async function SessionBody({ id, page }: { id: string; page: number }) {
   const session = await loadSessionData(id);
   if (!session) notFound();
 
@@ -71,7 +71,7 @@ export async function SessionBody({ id }: { id: string }) {
         </Card>
       </div>
       <SessionSequence session={session} />
-      <SessionTimeline events={session.events} />
+      <SessionTimeline id={id} events={session.events} page={page} />
     </>
   );
 }

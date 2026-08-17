@@ -76,7 +76,7 @@ function buildChart(session: SessionDetail): string {
 export function SessionSequence({ session }: { session: SessionDetail }) {
   return (
     <Card>
-      <CardContent className="overflow-x-auto">
+      <CardContent className="max-h-128 overflow-auto">
         <SequenceDiagram chart={buildChart(session)} />
       </CardContent>
     </Card>

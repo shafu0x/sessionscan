@@ -23,7 +23,7 @@ export function TablePagination({
       <div className="flex items-center gap-2">
         {currentPage > 1 ? (
           <Button asChild variant="outline" size="sm" className="min-h-11">
-            <Link href={hrefForPage(currentPage - 1)}>
+            <Link href={hrefForPage(currentPage - 1)} scroll={false}>
               <ChevronLeftIcon aria-hidden />
               Previous
             </Link>
@@ -45,7 +45,7 @@ export function TablePagination({
         </span>
         {currentPage < pageCount ? (
           <Button asChild variant="outline" size="sm" className="min-h-11">
-            <Link href={hrefForPage(currentPage + 1)}>
+            <Link href={hrefForPage(currentPage + 1)} scroll={false}>
               Next
               <ChevronRightIcon aria-hidden />
             </Link>
