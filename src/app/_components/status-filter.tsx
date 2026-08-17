@@ -63,7 +63,7 @@ export function StatusFilter({
           {current.label}
         </span>
       </SelectTrigger>
-      <SelectContent>
+      <SelectContent position="popper" align="end">
         {STATUS_OPTIONS.map((option) => (
           <SelectItem key={option.value} value={option.value}>
             <option.icon className="size-3" aria-hidden />
