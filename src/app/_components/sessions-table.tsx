@@ -16,11 +16,16 @@ import {
   formatRelativeTime,
   formatUsd,
   mppscanBuyerUrl,
-  pageFromParam,
+  tableHref,
   truncateHex,
 } from "@/channels/format";
 import { loadSessionsPage } from "@/channels/queries";
-import type { SessionSort, SortDir } from "@/channels/types";
+import type {
+  Channel,
+  SessionSort,
+  SortDir,
+  TimeRange,
+} from "@/channels/types";
 import { StatusBadge } from "@/components/status-badge";
 import { Card, CardContent } from "@/components/ui/card";
 import {
@@ -56,16 +61,14 @@ function HeaderLabel({
   );
 }
 
-function sortedHref(sort: SessionSort, dir: SortDir, page?: number): string {
-  const params = new URLSearchParams();
-  if (sort !== "opened" || dir !== "desc") {
-    params.set("sort", sort);
-    params.set("dir", dir);
-  }
-  if (page && page > 1) params.set("page", String(page));
-  const query = params.toString();
-  return query ? `/?${query}` : "/";
-}
+type StatusFilter = Channel["status"] | null;
+
+const STATUS_FILTERS: { value: StatusFilter; label: string }[] = [
+  { value: null, label: "All" },
+  { value: "open", label: "Open" },
+  { value: "closing", label: "Closing" },
+  { value: "closed", label: "Closed" },
+];
 
 function SortableHeaderLabel({
   column,
@@ -74,6 +77,8 @@ function SortableHeaderLabel({
   align = "left",
   sort,
   dir,
+  status,
+  range,
 }: {
   column: SessionSort;
   icon: ComponentType<{ className?: string; "aria-hidden"?: boolean }>;
@@ -81,6 +86,8 @@ function SortableHeaderLabel({
   align?: "left" | "right";
   sort: SessionSort;
   dir: SortDir;
+  status: StatusFilter;
+  range: TimeRange;
 }) {
   const active = sort === column;
   const nextDir = active && dir === "desc" ? "asc" : "desc";
@@ -88,7 +95,7 @@ function SortableHeaderLabel({
 
   return (
     <Link
-      href={sortedHref(column, nextDir)}
+      href={tableHref({ sort: column, dir: nextDir, status, range })}
       className={
         align === "right"
           ? "inline-flex w-full items-center justify-end gap-1.5 hover:text-foreground"
@@ -105,25 +112,41 @@ function SortableHeaderLabel({
 
 export async function SessionsTable({
   page,
-  sort: sortParam,
-  dir: dirParam,
+  sort,
+  dir,
+  status,
+  range,
 }: {
-  page: string | string[] | undefined;
-  sort: string | string[] | undefined;
-  dir: string | string[] | undefined;
+  page: number;
+  sort: SessionSort;
+  dir: SortDir;
+  status: StatusFilter;
+  range: TimeRange;
 }) {
-  const sort: SessionSort =
-    sortParam === "deposit" || sortParam === "settled" ? sortParam : "opened";
-  const dir: SortDir = dirParam === "asc" ? "asc" : "desc";
-  const paginated = await loadSessionsPage(pageFromParam(page), sort, dir);
+  const paginated = await loadSessionsPage(page, sort, dir, status, range);
 
   return (
     <Card>
-      <CardContent>
+      <CardContent className="flex flex-col gap-4">
+        <div className="flex flex-wrap items-center gap-2">
+          {STATUS_FILTERS.map((filter) => (
+            <Link
+              key={filter.label}
+              href={tableHref({ sort, dir, status: filter.value, range })}
+              className={
+                filter.value === status
+                  ? "rounded-md bg-secondary px-3 py-1.5 text-secondary-foreground text-xs"
+                  : "rounded-md px-3 py-1.5 text-muted-foreground text-xs hover:text-foreground"
+              }
+            >
+              {filter.label}
+            </Link>
+          ))}
+        </div>
         {paginated.totalItems === 0 ? (
           <div className="flex flex-col items-center gap-2 py-8 text-muted-foreground">
             <Inbox className="size-4" aria-hidden />
-            <p className="text-sm">No sessions indexed yet.</p>
+            <p className="text-sm">No sessions found.</p>
           </div>
         ) : (
           <>
@@ -183,6 +206,8 @@ export async function SessionsTable({
                       align="right"
                       sort={sort}
                       dir={dir}
+                      status={status}
+                      range={range}
                     >
                       Deposit
                     </SortableHeaderLabel>
@@ -194,6 +219,8 @@ export async function SessionsTable({
                       align="right"
                       sort={sort}
                       dir={dir}
+                      status={status}
+                      range={range}
                     >
                       Settled
                     </SortableHeaderLabel>
@@ -204,6 +231,8 @@ export async function SessionsTable({
                       icon={Clock}
                       sort={sort}
                       dir={dir}
+                      status={status}
+                      range={range}
                     >
                       Opened
                     </SortableHeaderLabel>
@@ -263,7 +292,9 @@ export async function SessionsTable({
               pageCount={paginated.pageCount}
               totalItems={paginated.totalItems}
               pageSize={paginated.pageSize}
-              hrefForPage={(nextPage) => sortedHref(sort, dir, nextPage)}
+              hrefForPage={(nextPage) =>
+                tableHref({ sort, dir, status, range, page: nextPage })
+              }
             />
           </>
         )}

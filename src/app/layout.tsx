@@ -3,6 +3,7 @@ import { SpeedInsights } from "@vercel/speed-insights/next";
 import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import type { ReactNode } from "react";
+import { Footer } from "@/components/footer";
 
 import "./globals.css";
 
@@ -37,6 +38,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
       <body className="flex min-h-full flex-col">
         <main className="mx-auto flex w-full max-w-4xl flex-1 flex-col gap-4 p-4 md:gap-6 md:p-6">
           {children}
+          <Footer />
         </main>
         <Analytics />
         <SpeedInsights />

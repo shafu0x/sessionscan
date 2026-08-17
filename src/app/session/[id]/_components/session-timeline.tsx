@@ -1,4 +1,4 @@
-import { ArrowUp, Banknote, Lock, Plus, Timer, X } from "lucide-react";
+import { ArrowUp, Banknote, History, Lock, Plus, Timer, X } from "lucide-react";
 import { formatRelativeTime, formatUsd } from "@/channels/format";
 import type { SessionEventView } from "@/channels/types";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -40,7 +40,10 @@ export function SessionTimeline({ events }: { events: SessionEventView[] }) {
   return (
     <Card>
       <CardHeader>
-        <CardTitle className="text-base">Timeline</CardTitle>
+        <CardTitle className="inline-flex items-center gap-1.5 text-base">
+          <History className="size-3.5" aria-hidden />
+          Timeline
+        </CardTitle>
       </CardHeader>
       <CardContent className="flex flex-col">
         {events.map((event, index) => {

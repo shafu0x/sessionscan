@@ -10,6 +10,7 @@ export type DayPoint = {
 
 export type SessionSort = "opened" | "deposit" | "settled";
 export type SortDir = "asc" | "desc";
+export type TimeRange = "1d" | "7d" | "30d" | "all";
 
 export type SessionRow = {
   channelId: string;

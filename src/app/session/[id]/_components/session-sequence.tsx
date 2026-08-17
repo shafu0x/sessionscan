@@ -1,12 +1,8 @@
-import { formatUsd } from "@/channels/format";
-import type { SessionDetail, SessionEventView } from "@/channels/types";
+import { formatUsd, truncateHex } from "@/channels/format";
+import type { SessionDetail } from "@/channels/types";
 import { Card, CardContent } from "@/components/ui/card";
 
 import { SequenceDiagram } from "./sequence-diagram";
-
-function amount(event: SessionEventView, key: string): string {
-  return event.amounts[key] ?? "0";
-}
 
 function mermaidText(value: string): string {
   return value.replaceAll("#", "").replaceAll(";", ",");
@@ -15,64 +11,58 @@ function mermaidText(value: string): string {
 function buildChart(session: SessionDetail): string {
   const lines = [
     "sequenceDiagram",
-    "  autonumber",
-    "  participant Client",
-    "  participant Server",
+    `  participant Client as Client<br/>${mermaidText(truncateHex(session.payer))}`,
+    `  participant Server as Server<br/>${mermaidText(truncateHex(session.payee))}`,
     "  participant Tempo",
   ];
 
-  const afterOpen: string[] = [];
-  let settlements = 0;
+  const opened = session.events.find((event) => event.type === "opened");
+  const topUps = session.events.filter((event) => event.type === "top_up");
+  const settlements = session.events.filter(
+    (event) => event.type === "settled",
+  ).length;
+  const closed = session.events.find((event) => event.type === "closed");
 
-  for (const event of session.events) {
-    switch (event.type) {
-      case "opened":
-        lines.push(
-          `  Client->>Tempo: ${mermaidText(`open $${formatUsd(amount(event, "deposit"))}`)}`,
-        );
-        lines.push("  Tempo-->>Client: ChannelOpened");
-        break;
-      case "top_up":
-        afterOpen.push(
-          `  Client->>Tempo: ${mermaidText(`top up +$${formatUsd(amount(event, "additionalDeposit"))}`)}`,
-        );
-        break;
-      case "settled":
-        settlements += 1;
-        afterOpen.push(
-          `  Server->>Tempo: ${mermaidText(`settle Δ$${formatUsd(amount(event, "deltaPaid"))}`)}`,
-        );
-        afterOpen.push(
-          `  Tempo-->>Server: ${mermaidText(`Settled cumulative $${formatUsd(amount(event, "cumulative"))}`)}`,
-        );
-        break;
-      case "close_requested":
-        afterOpen.push("  Client->>Tempo: requestClose");
-        break;
-      case "close_cancelled":
-        afterOpen.push("  Tempo-->>Client: CloseRequestCancelled");
-        break;
-      case "closed":
-        afterOpen.push("  Server->>Tempo: close");
-        afterOpen.push(
-          `  Tempo-->>Client: ${mermaidText(`ChannelClosed settled $${formatUsd(amount(event, "settledToPayee"))} + refund $${formatUsd(amount(event, "refundedToPayer"))}`)}`,
-        );
-        break;
-      default: {
-        const exhaustive: never = event.type;
-        throw new Error(`unhandled event ${exhaustive}`);
-      }
-    }
+  lines.push(
+    `  Client->>Tempo: ${mermaidText(`open · $${formatUsd(opened?.amounts.deposit ?? session.deposit)} deposit`)}`,
+  );
+
+  if (topUps.length > 0) {
+    const total = topUps.reduce(
+      (sum, event) =>
+        sum + Number.parseFloat(event.amounts.additionalDeposit ?? "0"),
+      0,
+    );
+    const count = topUps.length > 1 ? `${topUps.length}× · ` : "";
+    lines.push(
+      `  Client->>Tempo: ${mermaidText(`top up · ${count}+$${formatUsd(String(total))}`)}`,
+    );
   }
 
-  lines.push("  loop Per request");
-  lines.push("    Client->>Server: Request + voucher");
-  lines.push("    Note over Server: recover signature");
-  lines.push(
-    `    Note over Server: ${mermaidText(`off-chain, not indexed · ${settlements} settlements`)}`,
-  );
+  lines.push("  loop Per request · off-chain");
+  lines.push("    Client->>Server: request + voucher");
   lines.push("  end");
-  lines.push(...afterOpen);
+
+  if (settlements > 0) {
+    const count = settlements > 1 ? `${settlements}× · ` : "";
+    lines.push(
+      `  Server->>Tempo: ${mermaidText(`settle · ${count}$${formatUsd(session.settled)} total`)}`,
+    );
+  }
+
+  if (session.status === "closing") {
+    lines.push("  Client->>Tempo: request close");
+  }
+
+  if (closed) {
+    lines.push("  Server->>Tempo: close");
+    const refund = Number.parseFloat(closed.amounts.refundedToPayer ?? "0");
+    if (refund > 0) {
+      lines.push(
+        `  Tempo-->>Client: ${mermaidText(`refund $${formatUsd(String(refund))}`)}`,
+      );
+    }
+  }
 
   return lines.join("\n");
 }

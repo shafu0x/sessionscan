@@ -5,6 +5,7 @@ import { cache } from "react";
 import { formatUnits, isHex } from "viem";
 
 import { prisma } from "@/db";
+import { type ChannelStatus, Prisma } from "@/generated/prisma/client";
 import { client } from "@/viem";
 
 import type {
@@ -14,6 +15,7 @@ import type {
   SessionRow,
   SessionSort,
   SortDir,
+  TimeRange,
 } from "./types";
 
 const PAGE_SIZE = 10;
@@ -37,16 +39,30 @@ function cumulative(points: DayPoint[]): DayPoint[] {
   });
 }
 
-export async function loadChartSeries() {
+const RANGE_DAYS: Record<Exclude<TimeRange, "all">, number> = {
+  "1d": 1,
+  "7d": 7,
+  "30d": 30,
+};
+
+function rangeCutoff(range: TimeRange): Date | null {
+  if (range === "all") return null;
+  return new Date(Date.now() - RANGE_DAYS[range] * 24 * 60 * 60 * 1000);
+}
+
+export async function loadChartSeries(range: TimeRange) {
   "use cache";
   cacheLife({ stale: 600, revalidate: 600, expire: 1800 });
   cacheTag("channels");
+
+  const cutoff = rangeCutoff(range);
 
   const [sessionRows, volumeRows, buyerRows] = await Promise.all([
     prisma.$queryRaw<DayCountRow[]>`
       SELECT to_char(date_trunc('day', opened_at), 'YYYY-MM-DD') AS day,
              count(*)::int AS value
       FROM channels
+      ${cutoff ? Prisma.sql`WHERE opened_at >= ${cutoff}` : Prisma.empty}
       GROUP BY 1
       ORDER BY 1
     `,
@@ -55,6 +71,7 @@ export async function loadChartSeries() {
              coalesce(sum(volume), 0)::text AS value
       FROM channel_events
       WHERE volume > 0
+      ${cutoff ? Prisma.sql`AND ts >= ${cutoff}` : Prisma.empty}
       GROUP BY 1
       ORDER BY 1
     `,
@@ -66,6 +83,7 @@ export async function loadChartSeries() {
         FROM channels
         GROUP BY payer
       ) first_buyers
+      ${cutoff ? Prisma.sql`WHERE first_seen >= ${cutoff}` : Prisma.empty}
       GROUP BY 1
       ORDER BY 1
     `,
@@ -85,15 +103,23 @@ export async function loadSessionsPage(
   page: number,
   sort: SessionSort,
   dir: SortDir,
+  status: ChannelStatus | null,
+  range: TimeRange,
 ) {
   "use cache";
   cacheLife({ stale: 600, revalidate: 600, expire: 1800 });
   cacheTag("channels");
 
-  const totalItems = await prisma.channel.count();
+  const cutoff = rangeCutoff(range);
+  const where = {
+    ...(status ? { status } : {}),
+    ...(cutoff ? { openedAt: { gte: cutoff } } : {}),
+  };
+  const totalItems = await prisma.channel.count({ where });
   const pageCount = Math.max(1, Math.ceil(totalItems / PAGE_SIZE));
   const safePage = Math.min(Math.max(page, 1), pageCount);
   const rows = await prisma.channel.findMany({
+    where,
     orderBy:
       sort === "deposit"
         ? { deposit: dir }
