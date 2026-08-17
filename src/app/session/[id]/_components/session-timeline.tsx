@@ -1,7 +1,7 @@
-import { ArrowUp, Banknote, History, Lock, Plus, Timer, X } from "lucide-react";
+import { ArrowUp, Banknote, Lock, Plus, Timer, X } from "lucide-react";
 import { formatRelativeTime, formatUsd } from "@/channels/format";
 import type { SessionEventView } from "@/channels/types";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { TablePagination } from "@/components/ui/table-pagination";
 
@@ -57,12 +57,6 @@ export function SessionTimeline({
 
   return (
     <Card>
-      <CardHeader>
-        <CardTitle className="inline-flex items-center gap-1.5 text-base">
-          <History className="size-3.5" aria-hidden />
-          Timeline
-        </CardTitle>
-      </CardHeader>
       <CardContent className="flex flex-col">
         {pageEvents.map((event, index) => {
           const Icon = EVENT_ICON[event.type];

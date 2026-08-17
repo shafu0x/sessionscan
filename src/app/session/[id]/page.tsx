@@ -4,9 +4,16 @@ import { Suspense } from "react";
 import { pageFromParam, truncateHex } from "@/channels/format";
 import { loadSessionData } from "@/channels/queries";
 import { SessionBreadcrumbs } from "@/components/session-breadcrumbs";
+import { StatusBadge } from "@/components/status-badge";
 
 import { SessionBody } from "./_components/session-body";
 import { SessionDetailSkeleton } from "./_components/session-detail-skeleton";
+
+async function SessionStatus({ id }: { id: string }) {
+  const session = await loadSessionData(id);
+  if (!session) return null;
+  return <StatusBadge status={session.status} />;
+}
 
 export async function generateMetadata({
   params,
@@ -32,7 +39,14 @@ export default async function SessionPage({
 
   return (
     <>
-      <SessionBreadcrumbs id={id} />
+      <SessionBreadcrumbs
+        id={id}
+        badge={
+          <Suspense>
+            <SessionStatus id={id} />
+          </Suspense>
+        }
+      />
       <Suspense fallback={<SessionDetailSkeleton />}>
         <SessionBody id={id} page={pageFromParam(page)} />
       </Suspense>

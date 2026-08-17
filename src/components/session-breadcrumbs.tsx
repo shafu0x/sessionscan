@@ -8,7 +8,13 @@ import {
   BreadcrumbSeparator,
 } from "@/components/ui/breadcrumb";
 
-export function SessionBreadcrumbs({ id }: { id?: string }) {
+export function SessionBreadcrumbs({
+  id,
+  badge,
+}: {
+  id?: string;
+  badge?: React.ReactNode;
+}) {
   return (
     <Breadcrumb>
       <BreadcrumbList className="flex-wrap">
@@ -27,6 +33,7 @@ export function SessionBreadcrumbs({ id }: { id?: string }) {
                 {truncateHex(id)}
               </BreadcrumbPage>
             </BreadcrumbItem>
+            {badge}
           </>
         ) : null}
       </BreadcrumbList>
