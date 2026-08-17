@@ -1,5 +1,9 @@
 import { ArrowUp, Banknote, Lock, Plus, Timer, X } from "lucide-react";
-import { explorerTxUrl, formatRelativeTime, formatUsd } from "@/channels/format";
+import {
+  explorerTxUrl,
+  formatRelativeTime,
+  formatUsd,
+} from "@/channels/format";
 import type { SessionEventView } from "@/channels/types";
 import { Card, CardContent } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";

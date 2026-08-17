@@ -4,7 +4,7 @@ import { formatUsd } from "@/channels/format";
 import { loadSessionData } from "@/channels/queries";
 import { Card, CardContent } from "@/components/ui/card";
 
-import { SessionSequence } from "./session-sequence";
+import { SessionBalance } from "./session-balance";
 import { SessionTimeline } from "./session-timeline";
 
 const STATS = [
@@ -37,7 +37,7 @@ export async function SessionBody({ id, page }: { id: string; page: number }) {
           </Card>
         ))}
       </div>
-      <SessionSequence session={session} />
+      <SessionBalance session={session} />
       <SessionTimeline id={id} events={session.events} page={page} />
     </>
   );

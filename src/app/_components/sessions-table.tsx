@@ -204,16 +204,7 @@ export async function SessionsTable({
                     </SortableHeaderLabel>
                   </TableHead>
                   <TableHead className="w-[19%]">
-                    <SortableHeaderLabel
-                      column="opened"
-                      icon={Clock}
-                      sort={sort}
-                      dir={dir}
-                      status={status}
-                      range={range}
-                    >
-                      Opened
-                    </SortableHeaderLabel>
+                    <HeaderLabel icon={Clock}>Opened</HeaderLabel>
                   </TableHead>
                 </TableRow>
               </TableHeader>
