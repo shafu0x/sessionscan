@@ -37,7 +37,7 @@ export default async function HomePage({
 
   return (
     <>
-      <div className="flex flex-wrap items-center justify-between gap-2">
+      <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
         <SessionBreadcrumbs />
         <Search />
         <div className="flex flex-wrap items-center gap-2">

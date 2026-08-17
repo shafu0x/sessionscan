@@ -7,7 +7,7 @@ import { SessionsTableSkeleton } from "./_components/sessions-table-skeleton";
 export default function HomeLoading() {
   return (
     <>
-      <div className="flex flex-wrap items-center justify-between gap-2">
+      <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
         <SessionBreadcrumbs />
         <Skeleton className="h-8 w-80 rounded-lg" />
       </div>
