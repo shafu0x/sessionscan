@@ -7,6 +7,7 @@ import {
   sortFromParam,
   statusFromParam,
 } from "@/channels/format";
+import { Search } from "@/components/search";
 import { SessionBreadcrumbs } from "@/components/session-breadcrumbs";
 
 import { ChartsRow } from "./_components/charts-row";
@@ -37,6 +38,7 @@ export default async function HomePage({
     <>
       <div className="flex flex-wrap items-center justify-between gap-2">
         <SessionBreadcrumbs />
+        <Search />
         <RangeSelector sort={sort} dir={dir} status={status} range={range} />
       </div>
       <Suspense fallback={<ChartsRowSkeleton />}>

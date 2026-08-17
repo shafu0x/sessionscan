@@ -39,9 +39,7 @@ function buildChart(session: SessionDetail): string {
     );
   }
 
-  lines.push("  loop Per request · off-chain");
-  lines.push("    Client->>Server: request + voucher");
-  lines.push("  end");
+  lines.push("  Client->>Server: request + voucher");
 
   if (settlements > 0) {
     const count = settlements > 1 ? `${settlements}× · ` : "";

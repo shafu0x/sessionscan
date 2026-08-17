@@ -1,13 +1,6 @@
-import {
-  ArrowDownToLine,
-  ArrowRight,
-  ArrowUpFromLine,
-  Lock,
-  User,
-  Wallet,
-} from "lucide-react";
+import { ArrowDownToLine, ArrowUpFromLine, Lock } from "lucide-react";
 import { notFound } from "next/navigation";
-import { formatUsd, mppscanBuyerUrl, truncateHex } from "@/channels/format";
+import { formatUsd } from "@/channels/format";
 import { loadSessionData } from "@/channels/queries";
 import { StatusBadge } from "@/components/status-badge";
 import { Card, CardContent } from "@/components/ui/card";
@@ -51,23 +44,6 @@ export async function SessionBody({ id }: { id: string }) {
             </div>
             <StatusBadge status={session.status} />
           </div>
-          <p className="flex min-w-0 items-center gap-1.5 font-mono text-muted-foreground text-xs">
-            <User className="size-3.5 shrink-0" aria-hidden />
-            <a
-              href={mppscanBuyerUrl(session.payer)}
-              target="_blank"
-              rel="noreferrer"
-              className="truncate underline underline-offset-4 hover:text-foreground"
-              translate="no"
-            >
-              {truncateHex(session.payer)}
-            </a>
-            <ArrowRight className="size-3.5 shrink-0" aria-hidden />
-            <Wallet className="size-3.5 shrink-0" aria-hidden />
-            <span className="truncate" translate="no">
-              {truncateHex(session.payee)}
-            </span>
-          </p>
         </CardContent>
       </Card>
       <SessionSequence session={session} />

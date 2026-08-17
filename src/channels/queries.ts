@@ -10,6 +10,7 @@ import { client } from "@/viem";
 
 import type {
   DayPoint,
+  SearchHit,
   SessionDetail,
   SessionEventView,
   SessionRow,
@@ -221,3 +222,32 @@ async function loadSessionUncached(id: string): Promise<SessionDetail | null> {
 }
 
 export const loadSessionData = cache(loadSessionUncached);
+
+export async function searchSessions(q: string): Promise<SearchHit[]> {
+  const rows = await prisma.channel.findMany({
+    where: {
+      OR: [
+        { channelId: { startsWith: q } },
+        { payer: { startsWith: q } },
+        { payee: { startsWith: q } },
+      ],
+    },
+    orderBy: { lastEventAt: "desc" },
+    take: 10,
+    select: {
+      channelId: true,
+      payer: true,
+      payee: true,
+      status: true,
+      settled: true,
+    },
+  });
+
+  return rows.map((row) => ({
+    channelId: row.channelId,
+    payer: row.payer,
+    payee: row.payee,
+    status: row.status,
+    settled: row.settled.toString(),
+  }));
+}

@@ -41,6 +41,7 @@ model Channel {
   @@index([openedAt])
   @@index([status])
   @@index([payer])
+  @@index([payee])
   @@index([deposit])
   @@index([settled])
   @@map("channels")
