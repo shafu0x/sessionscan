@@ -33,6 +33,15 @@ export function truncateHex(value: string): string {
   return `${value.slice(0, 6)}…${value.slice(-4)}`;
 }
 
+const compactFormat = new Intl.NumberFormat("en-US", {
+  notation: "compact",
+  maximumFractionDigits: 2,
+});
+
+export function formatCompact(value: number): string {
+  return compactFormat.format(value);
+}
+
 export function formatUsd(value: string): string {
   const amount = Number.parseFloat(value);
   if (!Number.isFinite(amount)) return value;

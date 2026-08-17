@@ -63,13 +63,6 @@ function HeaderLabel({
 
 type StatusFilter = Channel["status"] | null;
 
-const STATUS_FILTERS: { value: StatusFilter; label: string }[] = [
-  { value: null, label: "All" },
-  { value: "open", label: "Open" },
-  { value: "closing", label: "Closing" },
-  { value: "closed", label: "Closed" },
-];
-
 function SortableHeaderLabel({
   column,
   icon: Icon,
@@ -126,23 +119,8 @@ export async function SessionsTable({
   const paginated = await loadSessionsPage(page, sort, dir, status, range);
 
   return (
-    <Card>
-      <CardContent className="flex flex-col gap-4">
-        <div className="flex flex-wrap items-center gap-2">
-          {STATUS_FILTERS.map((filter) => (
-            <Link
-              key={filter.label}
-              href={tableHref({ sort, dir, status: filter.value, range })}
-              className={
-                filter.value === status
-                  ? "rounded-md bg-secondary px-3 py-1.5 text-secondary-foreground text-xs"
-                  : "rounded-md px-3 py-1.5 text-muted-foreground text-xs hover:text-foreground"
-              }
-            >
-              {filter.label}
-            </Link>
-          ))}
-        </div>
+    <Card className="py-0 pt-(--card-spacing) pb-(--card-spacing) md:pt-0">
+      <CardContent className="flex flex-col">
         {paginated.totalItems === 0 ? (
           <div className="flex flex-col items-center gap-2 py-8 text-muted-foreground">
             <Inbox className="size-4" aria-hidden />
@@ -168,26 +146,22 @@ export async function SessionsTable({
                       {formatRelativeTime(new Date(session.openedAt))}
                     </time>
                   </div>
-                  <p className="truncate font-mono text-sm" translate="no">
-                    {truncateHex(session.channelId)}
-                  </p>
-                  <div className="flex justify-between gap-2 text-muted-foreground text-xs">
-                    <span className="truncate font-mono" translate="no">
-                      {truncateHex(session.payer)} →{" "}
-                      {truncateHex(session.payee)}
-                    </span>
-                    <span className="font-mono tabular-nums text-foreground">
+                  <div className="flex items-center justify-between gap-2">
+                    <p className="truncate font-mono text-sm" translate="no">
+                      {truncateHex(session.channelId)}
+                    </p>
+                    <p className="shrink-0 font-mono text-xs tabular-nums">
                       ${formatUsd(session.settled)} / $
                       {formatUsd(session.deposit)}
-                    </span>
+                    </p>
                   </div>
                 </Link>
               ))}
             </div>
-            <Table className="hidden md:table">
+            <Table className="hidden table-fixed md:table">
               <TableHeader>
                 <TableRow>
-                  <TableHead>
+                  <TableHead className="w-28">
                     <HeaderLabel icon={CircleDot}>Status</HeaderLabel>
                   </TableHead>
                   <TableHead>
@@ -199,7 +173,7 @@ export async function SessionsTable({
                   <TableHead>
                     <HeaderLabel icon={Wallet}>Payee</HeaderLabel>
                   </TableHead>
-                  <TableHead className="text-right">
+                  <TableHead className="w-24 text-right">
                     <SortableHeaderLabel
                       column="deposit"
                       icon={ArrowDownToLine}
@@ -212,7 +186,7 @@ export async function SessionsTable({
                       Deposit
                     </SortableHeaderLabel>
                   </TableHead>
-                  <TableHead className="text-right">
+                  <TableHead className="w-24 text-right">
                     <SortableHeaderLabel
                       column="settled"
                       icon={ArrowUpFromLine}
@@ -225,17 +199,10 @@ export async function SessionsTable({
                       Settled
                     </SortableHeaderLabel>
                   </TableHead>
-                  <TableHead>
-                    <SortableHeaderLabel
-                      column="opened"
-                      icon={Clock}
-                      sort={sort}
-                      dir={dir}
-                      status={status}
-                      range={range}
-                    >
+                  <TableHead className="w-32 text-right">
+                    <HeaderLabel icon={Clock} align="right">
                       Opened
-                    </SortableHeaderLabel>
+                    </HeaderLabel>
                   </TableHead>
                 </TableRow>
               </TableHeader>
@@ -275,7 +242,7 @@ export async function SessionsTable({
                     <TableCell className="text-right font-mono tabular-nums">
                       ${formatUsd(session.settled)}
                     </TableCell>
-                    <TableCell className="text-muted-foreground text-sm">
+                    <TableCell className="text-right text-muted-foreground text-sm">
                       <time
                         dateTime={session.openedAt}
                         title={session.openedAt}

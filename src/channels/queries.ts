@@ -10,6 +10,7 @@ import { client } from "@/viem";
 
 import type {
   DayPoint,
+  SearchHit,
   SessionDetail,
   SessionEventView,
   SessionRow,
@@ -50,19 +51,27 @@ function rangeCutoff(range: TimeRange): Date | null {
   return new Date(Date.now() - RANGE_DAYS[range] * 24 * 60 * 60 * 1000);
 }
 
-export async function loadChartSeries(range: TimeRange) {
+export async function loadChartSeries(
+  range: TimeRange,
+  status: ChannelStatus | null,
+) {
   "use cache";
   cacheLife({ stale: 600, revalidate: 600, expire: 1800 });
   cacheTag("channels");
 
   const cutoff = rangeCutoff(range);
+  const statusFilter = status
+    ? Prisma.sql`AND status = ${status}::"ChannelStatus"`
+    : Prisma.empty;
 
   const [sessionRows, volumeRows, buyerRows] = await Promise.all([
     prisma.$queryRaw<DayCountRow[]>`
       SELECT to_char(date_trunc('day', opened_at), 'YYYY-MM-DD') AS day,
              count(*)::int AS value
       FROM channels
-      ${cutoff ? Prisma.sql`WHERE opened_at >= ${cutoff}` : Prisma.empty}
+      WHERE TRUE
+      ${cutoff ? Prisma.sql`AND opened_at >= ${cutoff}` : Prisma.empty}
+      ${statusFilter}
       GROUP BY 1
       ORDER BY 1
     `,
@@ -72,6 +81,14 @@ export async function loadChartSeries(range: TimeRange) {
       FROM channel_events
       WHERE volume > 0
       ${cutoff ? Prisma.sql`AND ts >= ${cutoff}` : Prisma.empty}
+      ${
+        status
+          ? Prisma.sql`AND channel_id IN (
+              SELECT channel_id FROM channels
+              WHERE status = ${status}::"ChannelStatus"
+            )`
+          : Prisma.empty
+      }
       GROUP BY 1
       ORDER BY 1
     `,
@@ -81,6 +98,8 @@ export async function loadChartSeries(range: TimeRange) {
       FROM (
         SELECT payer, min(opened_at) AS first_seen
         FROM channels
+        WHERE TRUE
+        ${statusFilter}
         GROUP BY payer
       ) first_buyers
       ${cutoff ? Prisma.sql`WHERE first_seen >= ${cutoff}` : Prisma.empty}
@@ -221,3 +240,32 @@ async function loadSessionUncached(id: string): Promise<SessionDetail | null> {
 }
 
 export const loadSessionData = cache(loadSessionUncached);
+
+export async function searchSessions(q: string): Promise<SearchHit[]> {
+  const rows = await prisma.channel.findMany({
+    where: {
+      OR: [
+        { channelId: { startsWith: q } },
+        { payer: { startsWith: q } },
+        { payee: { startsWith: q } },
+      ],
+    },
+    orderBy: { lastEventAt: "desc" },
+    take: 10,
+    select: {
+      channelId: true,
+      payer: true,
+      payee: true,
+      status: true,
+      settled: true,
+    },
+  });
+
+  return rows.map((row) => ({
+    channelId: row.channelId,
+    payer: row.payer,
+    payee: row.payee,
+    status: row.status,
+    settled: row.settled.toString(),
+  }));
+}

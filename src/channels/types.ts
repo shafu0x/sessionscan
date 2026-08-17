@@ -22,6 +22,14 @@ export type SessionRow = {
   openedAt: string;
 };
 
+export type SearchHit = {
+  channelId: string;
+  payer: string;
+  payee: string;
+  status: Channel["status"];
+  settled: string;
+};
+
 export type SessionEventView = {
   type: ChannelEvent["type"];
   txHash: string;

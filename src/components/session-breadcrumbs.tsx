@@ -8,15 +8,25 @@ import {
   BreadcrumbSeparator,
 } from "@/components/ui/breadcrumb";
 
-export function SessionBreadcrumbs({ id }: { id?: string }) {
+export function SessionBreadcrumbs({
+  id,
+  badge,
+}: {
+  id?: string;
+  badge?: React.ReactNode;
+}) {
   return (
     <Breadcrumb>
       <BreadcrumbList className="flex-wrap">
         <BreadcrumbItem>
           {id ? (
-            <BreadcrumbLink href="/">MPP Sessions</BreadcrumbLink>
+            <BreadcrumbLink href="/" className="font-bold text-base">
+              MPP Sessions
+            </BreadcrumbLink>
           ) : (
-            <BreadcrumbPage>MPP Sessions</BreadcrumbPage>
+            <BreadcrumbPage className="font-bold text-base">
+              MPP Sessions
+            </BreadcrumbPage>
           )}
         </BreadcrumbItem>
         {id ? (
@@ -27,6 +37,7 @@ export function SessionBreadcrumbs({ id }: { id?: string }) {
                 {truncateHex(id)}
               </BreadcrumbPage>
             </BreadcrumbItem>
+            {badge}
           </>
         ) : null}
       </BreadcrumbList>
