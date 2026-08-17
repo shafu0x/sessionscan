@@ -1,11 +1,9 @@
 import { ArrowUp, Banknote, Lock, Plus, Timer, X } from "lucide-react";
-import { formatRelativeTime, formatUsd } from "@/channels/format";
+import { explorerTxUrl, formatRelativeTime, formatUsd } from "@/channels/format";
 import type { SessionEventView } from "@/channels/types";
 import { Card, CardContent } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { TablePagination } from "@/components/ui/table-pagination";
-
-import { TxLink } from "./tx-link";
 
 const PAGE_SIZE = 10;
 
@@ -18,20 +16,40 @@ const EVENT_ICON = {
   closed: Lock,
 } as const;
 
-function labelFor(event: SessionEventView): string {
+function actionFor(event: SessionEventView): string {
   switch (event.type) {
     case "opened":
-      return `Opened · $${formatUsd(event.amounts.deposit ?? "0")}`;
+      return "Opened";
     case "top_up":
-      return `Top up · +$${formatUsd(event.amounts.additionalDeposit ?? "0")}`;
+      return "Top up";
     case "settled":
-      return `Settled · $${formatUsd(event.amounts.deltaPaid ?? "0")}`;
+      return "Settled";
     case "close_requested":
       return "Close requested";
     case "close_cancelled":
       return "Close cancelled";
     case "closed":
-      return `Closed · settled $${formatUsd(event.amounts.settledToPayee ?? "0")}`;
+      return "Closed";
+    default: {
+      const exhaustive: never = event.type;
+      throw new Error(`unhandled event ${exhaustive}`);
+    }
+  }
+}
+
+function amountFor(event: SessionEventView): string | null {
+  switch (event.type) {
+    case "opened":
+      return `$${formatUsd(event.amounts.deposit ?? "0")}`;
+    case "top_up":
+      return `+$${formatUsd(event.amounts.additionalDeposit ?? "0")}`;
+    case "settled":
+      return `$${formatUsd(event.amounts.deltaPaid ?? "0")}`;
+    case "closed":
+      return `$${formatUsd(event.amounts.settledToPayee ?? "0")}`;
+    case "close_requested":
+    case "close_cancelled":
+      return null;
     default: {
       const exhaustive: never = event.type;
       throw new Error(`unhandled event ${exhaustive}`);
@@ -60,25 +78,37 @@ export function SessionTimeline({
       <CardContent className="flex flex-col">
         {pageEvents.map((event, index) => {
           const Icon = EVENT_ICON[event.type];
+          const amount = amountFor(event);
           return (
             <div key={`${event.txHash}-${event.logIndex}`}>
               {index > 0 ? <Separator className="my-3" /> : null}
-              <div className="flex items-start gap-3">
+              <div className="flex items-center gap-3">
                 <Icon
-                  className="mt-0.5 size-4 text-muted-foreground"
+                  className="size-4 shrink-0 text-muted-foreground"
                   aria-hidden
                 />
                 <div className="min-w-0 flex-1">
-                  <p className="text-sm">{labelFor(event)}</p>
+                  <a
+                    href={explorerTxUrl(event.txHash)}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="text-sm hover:text-muted-foreground"
+                  >
+                    {actionFor(event)}
+                  </a>
                   <time
-                    className="text-muted-foreground text-xs"
+                    className="block text-muted-foreground text-xs"
                     dateTime={event.ts}
                     title={event.ts}
                   >
                     {formatRelativeTime(new Date(event.ts))}
                   </time>
                 </div>
-                <TxLink txHash={event.txHash} />
+                {amount ? (
+                  <p className="shrink-0 font-mono text-sm tabular-nums">
+                    {amount}
+                  </p>
+                ) : null}
               </div>
             </div>
           );

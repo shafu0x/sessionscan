@@ -55,10 +55,6 @@ export function explorerTxUrl(txHash: string): string {
   return `https://explore.tempo.xyz/tx/${txHash}`;
 }
 
-export function explorerAddressUrl(address: string): string {
-  return `https://explore.tempo.xyz/address/${address}`;
-}
-
 export function mppscanBuyerUrl(address: string): string {
   return `https://mppscan.com/buyer/${address}`;
 }
