@@ -2,6 +2,7 @@
 
 import { Circle, CircleCheck, CircleDot, Clock } from "lucide-react";
 import { useRouter } from "next/navigation";
+import { useOptimistic, useTransition } from "react";
 
 import { tableHref } from "@/channels/format";
 import type {
@@ -36,29 +37,37 @@ export function StatusFilter({
   range: TimeRange;
 }) {
   const router = useRouter();
+  const [isPending, startTransition] = useTransition();
+  const [optimisticStatus, setOptimisticStatus] = useOptimistic(
+    status ?? "all",
+  );
   const current =
-    STATUS_OPTIONS.find((option) => option.value === (status ?? "all")) ??
+    STATUS_OPTIONS.find((option) => option.value === optimisticStatus) ??
     STATUS_OPTIONS[0];
 
   return (
     <Select
-      value={status ?? "all"}
+      value={optimisticStatus}
       onValueChange={(value) => {
-        router.push(
-          tableHref({
-            sort,
-            dir,
-            status: value === "all" ? null : (value as Channel["status"]),
-            range,
-          }),
-        );
+        startTransition(() => {
+          setOptimisticStatus(value as typeof optimisticStatus);
+          router.push(
+            tableHref({
+              sort,
+              dir,
+              status: value === "all" ? null : (value as Channel["status"]),
+              range,
+            }),
+          );
+        });
       }}
     >
       <SelectTrigger
-        className="border-0 bg-card text-xs ring-1 ring-foreground/10 dark:bg-card dark:hover:bg-muted/50"
+        className="w-24! shrink-0 border-0 bg-card text-xs ring-1 ring-foreground/10 data-pending:opacity-70 dark:bg-card dark:hover:bg-muted/50"
         aria-label="Filter by status"
+        data-pending={isPending || undefined}
       >
-        <span className="flex items-center gap-1.5">
+        <span className="flex min-w-0 flex-1 items-center gap-1.5 truncate">
           <current.icon className="size-3" aria-hidden />
           {current.label}
         </span>
