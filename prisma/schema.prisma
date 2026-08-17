@@ -1,0 +1,75 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum ChannelStatus {
+  open
+  closing
+  closed
+}
+
+enum ChannelEventType {
+  opened
+  settled
+  top_up
+  close_requested
+  close_cancelled
+  closed
+}
+
+model Channel {
+  channelId   String        @id @map("channel_id")
+  payer       String
+  payee       String
+  operator    String
+  token       String
+  salt        String
+  deposit     Decimal       @db.Decimal(20, 6)
+  settled     Decimal       @db.Decimal(20, 6)
+  refunded    Decimal       @db.Decimal(20, 6)
+  status      ChannelStatus
+  openedAt    DateTime      @map("opened_at")
+  lastEventAt DateTime      @map("last_event_at")
+  closedAt    DateTime?     @map("closed_at")
+  events      ChannelEvent[]
+
+  @@index([openedAt])
+  @@index([status])
+  @@index([payer])
+  @@map("channels")
+}
+
+model ChannelEvent {
+  id        String           @id @default(cuid())
+  channelId String           @map("channel_id")
+  channel   Channel          @relation(fields: [channelId], references: [channelId])
+  type      ChannelEventType
+  payer     String
+  payee     String
+  token     String
+  txHash    String           @map("tx_hash")
+  logIndex  Int              @map("log_index")
+  blockNum  Int              @map("block_num")
+  ts        DateTime
+  amounts   Json
+  volume    Decimal          @default(0) @db.Decimal(20, 6)
+
+  @@unique([txHash, logIndex])
+  @@index([channelId, blockNum, logIndex])
+  @@index([ts])
+  @@index([type])
+  @@map("channel_events")
+}
+
+model SyncCursor {
+  id           Int @id
+  fromBlock    Int @map("from_block")
+  fromLogIndex Int @map("from_log_index")
+
+  @@map("sync_cursor")
+}

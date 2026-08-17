@@ -1,0 +1,23 @@
+{
+  "$schema": "https://unpkg.com/knip@6/schema.json",
+  "entry": [
+    "src/app/**/{page,layout,loading,error,not-found,route}.{ts,tsx}",
+    "src/env.ts",
+    "src/viem.ts",
+    "src/db.ts"
+  ],
+  "project": ["src/**/*.{ts,tsx}"],
+  "ignore": ["src/generated/**", "src/components/ui/**", "src/lib/utils.ts"],
+  "ignoreDependencies": [
+    "tw-animate-css",
+    "pg",
+    "shadcn",
+    "tailwindcss",
+    "@prisma/client",
+    "radix-ui",
+    "class-variance-authority",
+    "clsx",
+    "tailwind-merge",
+    "@types/pg"
+  ]
+}
