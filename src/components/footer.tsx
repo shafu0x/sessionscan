@@ -1,4 +1,8 @@
+"use client";
+
 import { Heart } from "lucide-react";
+
+import { notifyTwitterClick } from "./footer-action";
 
 export function Footer() {
   return (
@@ -12,6 +16,9 @@ export function Footer() {
           target="_blank"
           rel="noopener noreferrer"
           className="text-inherit underline"
+          onClick={() => {
+            void notifyTwitterClick();
+          }}
         >
           @shafu0x
         </a>

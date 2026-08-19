@@ -12,7 +12,20 @@ function readEnv(key: EnvKey): string {
   return process.env[key]?.trim() ?? "";
 }
 
-function validateEnv(): Record<EnvKey, string> & { TEMPO_RPC_URL: string } {
+function readAll() {
+  return {
+    DATABASE_URL: readEnv("DATABASE_URL"),
+    CRON_SECRET: readEnv("CRON_SECRET"),
+    TEMPO_API_KEY: readEnv("TEMPO_API_KEY"),
+    TEMPO_RPC_URL: process.env.TEMPO_RPC_URL?.trim() || "https://rpc.tempo.xyz",
+    DISCORD_ALERTS_WEBHOOK_URL:
+      process.env.DISCORD_ALERTS_WEBHOOK_URL?.trim() ?? "",
+    DISCORD_NOTIFICATIONS_WEBHOOK_URL:
+      process.env.DISCORD_NOTIFICATIONS_WEBHOOK_URL?.trim() ?? "",
+  };
+}
+
+function validateEnv() {
   const missing = ENV_KEYS.filter((key) => !readEnv(key));
 
   if (missing.length > 0) {
@@ -22,21 +35,8 @@ function validateEnv(): Record<EnvKey, string> & { TEMPO_RPC_URL: string } {
     );
   }
 
-  return {
-    DATABASE_URL: readEnv("DATABASE_URL"),
-    CRON_SECRET: readEnv("CRON_SECRET"),
-    TEMPO_API_KEY: readEnv("TEMPO_API_KEY"),
-    TEMPO_RPC_URL: process.env.TEMPO_RPC_URL?.trim() || "https://rpc.tempo.xyz",
-  };
+  return readAll();
 }
 
 export const env =
-  process.env.SKIP_ENV_VALIDATION === "1"
-    ? {
-        DATABASE_URL: readEnv("DATABASE_URL"),
-        CRON_SECRET: readEnv("CRON_SECRET"),
-        TEMPO_API_KEY: readEnv("TEMPO_API_KEY"),
-        TEMPO_RPC_URL:
-          process.env.TEMPO_RPC_URL?.trim() || "https://rpc.tempo.xyz",
-      }
-    : validateEnv();
+  process.env.SKIP_ENV_VALIDATION === "1" ? readAll() : validateEnv();
