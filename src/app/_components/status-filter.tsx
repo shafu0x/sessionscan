@@ -63,7 +63,7 @@ export function StatusFilter({
       }}
     >
       <SelectTrigger
-        className="h-8 w-28! shrink-0 rounded-none border-0 border-l border-foreground/10 bg-transparent text-xs shadow-none ring-0 data-pending:opacity-70 dark:bg-transparent dark:hover:bg-muted/50"
+        className="h-8 w-24! shrink-0 rounded-none border-0 bg-transparent text-xs shadow-none ring-0 data-pending:opacity-70 sm:w-28! sm:border-l sm:border-foreground/10 dark:bg-transparent dark:hover:bg-muted/50"
         aria-label="Filter by status"
         data-pending={isPending || undefined}
       >

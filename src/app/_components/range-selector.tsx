@@ -27,15 +27,15 @@ export function RangeSelector({
   range: TimeRange;
 }) {
   return (
-    <div className="flex h-8 items-center p-1">
+    <div className="flex h-8 min-w-0 items-center p-1">
       {RANGES.map((option) => (
         <Link
           key={option.value}
           href={tableHref({ sort, dir, status, range: option.value })}
           className={
             option.value === range
-              ? "flex h-full items-center rounded-md bg-background px-3 text-foreground text-xs"
-              : "flex h-full items-center rounded-md px-3 text-muted-foreground text-xs hover:text-foreground"
+              ? "flex h-full items-center justify-center rounded-md bg-background px-2 text-foreground text-xs sm:px-3"
+              : "flex h-full items-center justify-center rounded-md px-2 text-muted-foreground text-xs hover:text-foreground sm:px-3"
           }
         >
           {option.label}

@@ -148,17 +148,14 @@ export async function SessionsTable({
                     </time>
                   </div>
                   <div className="flex items-center justify-between gap-2">
-                    <p className="truncate font-mono text-sm" translate="no">
-                      {truncateHex(session.channelId)}
+                    <p className="min-w-0 truncate text-sm" translate="no">
+                      <ServiceLabel payee={session.payee} link={false} />
                     </p>
                     <p className="shrink-0 font-mono text-xs tabular-nums">
                       ${formatUsd(session.settled)} / $
                       {formatUsd(session.deposit)}
                     </p>
                   </div>
-                  <p className="font-mono text-muted-foreground text-xs">
-                    <ServiceLabel payee={session.payee} link={false} />
-                  </p>
                 </Link>
               ))}
             </div>

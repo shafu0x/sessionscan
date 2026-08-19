@@ -37,18 +37,33 @@ export default async function HomePage({
 
   return (
     <>
-      <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
-        <SessionBreadcrumbs />
-        <div className="flex items-center gap-2">
+      <div className="mb-2 flex flex-col gap-5 sm:flex-row sm:flex-wrap sm:items-center sm:justify-between sm:gap-2">
+        <div className="flex flex-col gap-2 sm:gap-0">
+          <SessionBreadcrumbs />
+          <p className="text-pretty text-base text-muted-foreground leading-snug sm:hidden">
+            MPP Sessions enable fast offchain micropayments with onchain
+            settlement.
+          </p>
+        </div>
+        <div className="flex w-full flex-row items-center gap-2 sm:w-auto">
           <Search />
-          <div className="flex items-center overflow-hidden rounded-lg bg-card ring-1 ring-foreground/10">
-            <RangeSelector
-              sort={sort}
-              dir={dir}
-              status={status}
-              range={range}
-            />
-            <StatusFilter sort={sort} dir={dir} status={status} range={range} />
+          <div className="flex min-w-0 flex-1 flex-row items-center gap-2 sm:flex-none sm:gap-0 sm:overflow-hidden sm:rounded-lg sm:bg-card sm:ring-1 sm:ring-foreground/10">
+            <div className="min-w-0 shrink overflow-hidden rounded-lg bg-card ring-1 ring-foreground/10 sm:rounded-none sm:bg-transparent sm:ring-0">
+              <RangeSelector
+                sort={sort}
+                dir={dir}
+                status={status}
+                range={range}
+              />
+            </div>
+            <div className="shrink-0 overflow-hidden rounded-lg bg-card ring-1 ring-foreground/10 sm:rounded-none sm:bg-transparent sm:ring-0">
+              <StatusFilter
+                sort={sort}
+                dir={dir}
+                status={status}
+                range={range}
+              />
+            </div>
           </div>
         </div>
       </div>
