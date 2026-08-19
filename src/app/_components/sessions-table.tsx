@@ -26,6 +26,7 @@ import type {
   SortDir,
   TimeRange,
 } from "@/channels/types";
+import { ServiceLabel } from "@/components/service-label";
 import { StatusBadge } from "@/components/status-badge";
 import { Card, CardContent } from "@/components/ui/card";
 import {
@@ -155,12 +156,18 @@ export async function SessionsTable({
                       {formatUsd(session.deposit)}
                     </p>
                   </div>
+                  <p className="font-mono text-muted-foreground text-xs">
+                    <ServiceLabel payee={session.payee} link={false} />
+                  </p>
                 </Link>
               ))}
             </div>
             <Table className="hidden table-fixed md:table">
               <TableHeader>
                 <TableRow>
+                  <TableHead>
+                    <HeaderLabel icon={Wallet}>Service</HeaderLabel>
+                  </TableHead>
                   <TableHead className="w-28">
                     <HeaderLabel icon={CircleDot}>Status</HeaderLabel>
                   </TableHead>
@@ -169,9 +176,6 @@ export async function SessionsTable({
                   </TableHead>
                   <TableHead>
                     <HeaderLabel icon={User}>Payer</HeaderLabel>
-                  </TableHead>
-                  <TableHead>
-                    <HeaderLabel icon={Wallet}>Payee</HeaderLabel>
                   </TableHead>
                   <TableHead className="w-24 text-right">
                     <SortableHeaderLabel
@@ -209,6 +213,9 @@ export async function SessionsTable({
               <TableBody>
                 {paginated.items.map((session) => (
                   <TableRow key={session.channelId} className="relative">
+                    <TableCell className="font-mono text-xs" translate="no">
+                      <ServiceLabel payee={session.payee} />
+                    </TableCell>
                     <TableCell>
                       <StatusBadge status={session.status} />
                     </TableCell>
@@ -232,9 +239,6 @@ export async function SessionsTable({
                       >
                         {truncateHex(session.payer)}
                       </a>
-                    </TableCell>
-                    <TableCell className="font-mono text-xs" translate="no">
-                      {truncateHex(session.payee)}
                     </TableCell>
                     <TableCell className="text-right font-mono tabular-nums">
                       ${formatUsd(session.deposit)}

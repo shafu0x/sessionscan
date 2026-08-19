@@ -8,6 +8,7 @@
   ],
   "project": ["src/**/*.{ts,tsx}"],
   "ignore": ["src/generated/**", "src/components/ui/**", "src/lib/utils.ts"],
+  "ignoreBinaries": ["psql"],
   "ignoreDependencies": [
     "tw-animate-css",
     "pg",

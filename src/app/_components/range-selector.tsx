@@ -27,7 +27,7 @@ export function RangeSelector({
   range: TimeRange;
 }) {
   return (
-    <div className="flex h-8 items-center rounded-lg bg-card p-1 ring-1 ring-foreground/10">
+    <div className="flex h-8 items-center p-1">
       {RANGES.map((option) => (
         <Link
           key={option.value}

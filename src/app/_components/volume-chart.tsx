@@ -18,7 +18,7 @@ export function VolumeChart({ data }: { data: DayPoint[] }) {
         </p>
       </CardHeader>
       <CardContent className="h-16">
-        <ChartDynamic data={data} valueLabel="Volume" />
+        <ChartDynamic data={data} valueLabel="Volume" usd />
       </CardContent>
     </Card>
   );

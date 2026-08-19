@@ -44,6 +44,8 @@ model Channel {
   @@index([payee])
   @@index([deposit])
   @@index([settled])
+  // Index-only scan for the payer_first_seen materialized view refresh.
+  @@index([payer, status, openedAt])
   @@map("channels")
 }
 
@@ -65,7 +67,6 @@ model ChannelEvent {
   @@unique([txHash, logIndex])
   @@index([channelId, blockNum, logIndex])
   @@index([ts])
-  @@index([type])
   @@map("channel_events")
 }
 

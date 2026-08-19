@@ -23,6 +23,16 @@ export const metadata: Metadata = {
     template: "%s — Sessionscan",
   },
   description: "Explorer for Tempo MPP sessions",
+  icons: {
+    icon: "/icon.svg",
+  },
+  openGraph: {
+    siteName: "Sessionscan",
+    type: "website",
+  },
+  twitter: {
+    card: "summary_large_image",
+  },
 };
 
 export const viewport: Viewport = {

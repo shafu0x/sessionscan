@@ -6,6 +6,7 @@ import { useDeferredValue, useEffect, useState } from "react";
 
 import { truncateHex } from "@/channels/format";
 import type { SearchHit } from "@/channels/types";
+import { ServiceLabel } from "@/components/service-label";
 import { StatusBadge } from "@/components/status-badge";
 import {
   Command,
@@ -82,11 +83,11 @@ export function Search() {
       <button
         type="button"
         onClick={() => setOpen(true)}
-        className="hidden h-8 w-64 items-center gap-2 rounded-lg bg-card px-2.5 text-sm text-muted-foreground ring-1 ring-foreground/10 transition-colors hover:bg-muted/50 md:flex"
+        className="hidden h-8 items-center gap-1.5 rounded-lg bg-card px-2 text-muted-foreground ring-1 ring-foreground/10 transition-colors hover:bg-muted/50 md:flex"
+        aria-label="Search sessions"
       >
         <SearchIcon className="size-4 shrink-0 opacity-50" aria-hidden />
-        <span className="flex-1 truncate text-left">Search sessions…</span>
-        <kbd className="pointer-events-none hidden rounded border bg-muted px-1.5 font-sans text-[10px] text-muted-foreground sm:inline-block">
+        <kbd className="pointer-events-none rounded border bg-muted px-1.5 font-sans text-[10px] text-muted-foreground">
           ⌘K
         </kbd>
       </button>
@@ -142,7 +143,8 @@ export function Search() {
                         className="truncate font-mono text-muted-foreground text-xs"
                         translate="no"
                       >
-                        {truncateHex(hit.payer)} → {truncateHex(hit.payee)}
+                        {truncateHex(hit.payer)} →{" "}
+                        <ServiceLabel payee={hit.payee} link={false} />
                       </span>
                     </div>
                   </CommandItem>
