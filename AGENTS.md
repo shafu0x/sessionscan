@@ -27,6 +27,7 @@ pnpm dev          # local server
 pnpm sync         # fetch channel logs (dev server must be running)
 pnpm check        # biome + tsc + knip
 pnpm db:push      # apply schema to Neon
+pnpm db:sql       # apply prisma/sql/aggregates.sql (matviews + partial index) to Neon
 ```
 
 Node **20.20.0** (`.nvmrc`), pnpm **9.15.0** (`packageManager` in `package.json`).
@@ -51,5 +52,6 @@ Do not require `DISCORD_ALERTS_WEBHOOK_URL`.
 - shadcn primitives in `src/components/ui/` — add via CLI, don’t hand-copy
 - Dark-only; brand colors `#00ADB5` / `#393E46` only when color is needed
 - Minimal UI — prefer whitespace and typography over decoration
+- **Never use `biome-ignore`** — fix the underlying issue instead (e.g. use `next/image` for remote images, add `remotePatterns` in `next.config.ts`)
 - **viem + Tempo first** — `Abis`/`Addresses`/`decodeEventLog`/`client.channel.getStates` before any custom ABI or RPC code; no `mppx` in this repo
 - Review Vercel React / Next.js skills before changing UI or data fetching

@@ -23,6 +23,9 @@ export const metadata: Metadata = {
     template: "%s — Sessionscan",
   },
   description: "Explorer for Tempo MPP sessions",
+  icons: {
+    icon: "/icon.svg",
+  },
 };
 
 export const viewport: Viewport = {

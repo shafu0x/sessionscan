@@ -16,6 +16,7 @@
     "sync": "curl -sf -H \"Authorization: Bearer ${CRON_SECRET:-local-dev-secret}\" http://localhost:3000/api/cron/sync",
     "db:generate": "prisma generate",
     "db:push": "prisma db push",
+    "db:sql": "set -a && . ./.env.local && set +a && psql \"$DATABASE_URL\" -v ON_ERROR_STOP=1 -f prisma/sql/aggregates.sql",
     "db:studio": "prisma studio"
   },
   "dependencies": {

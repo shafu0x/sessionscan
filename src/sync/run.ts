@@ -48,6 +48,16 @@ export async function runSync() {
     if (rows.length < PAGE_SIZE) break;
   }
 
+  if (applied > 0) {
+    // CONCURRENTLY avoids blocking chart reads; it requires the unique
+    // indexes created in prisma/sql/aggregates.sql.
+    for (const view of ["channel_daily", "volume_daily", "payer_first_seen"]) {
+      await prisma.$executeRawUnsafe(
+        `REFRESH MATERIALIZED VIEW CONCURRENTLY ${view}`,
+      );
+    }
+  }
+
   return {
     pages,
     events,

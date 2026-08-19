@@ -3,13 +3,17 @@
 import { Area, AreaChart, ResponsiveContainer, Tooltip } from "recharts";
 
 import type { DayPoint } from "@/channels/types";
+import { formatDay } from "@/lib/date";
+import { formatChartValue } from "@/lib/number";
 
 export function ChartBody({
   data,
   valueLabel,
+  usd = false,
 }: {
   data: DayPoint[];
   valueLabel: string;
+  usd?: boolean;
 }) {
   return (
     <ResponsiveContainer width="100%" height="100%">
@@ -22,7 +26,8 @@ export function ChartBody({
             color: "var(--popover-foreground)",
           }}
           labelStyle={{ color: "var(--muted-foreground)" }}
-          formatter={(value) => [String(value ?? ""), valueLabel]}
+          formatter={(value) => [formatChartValue(value, usd), valueLabel]}
+          labelFormatter={(_, payload) => formatDay(payload?.[0]?.payload?.day)}
         />
         <Area
           type="monotone"

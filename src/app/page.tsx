@@ -39,10 +39,17 @@ export default async function HomePage({
     <>
       <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
         <SessionBreadcrumbs />
-        <Search />
-        <div className="flex flex-wrap items-center gap-2">
-          <RangeSelector sort={sort} dir={dir} status={status} range={range} />
-          <StatusFilter sort={sort} dir={dir} status={status} range={range} />
+        <div className="flex items-center gap-2">
+          <Search />
+          <div className="flex items-center overflow-hidden rounded-lg bg-card ring-1 ring-foreground/10">
+            <RangeSelector
+              sort={sort}
+              dir={dir}
+              status={status}
+              range={range}
+            />
+            <StatusFilter sort={sort} dir={dir} status={status} range={range} />
+          </div>
         </div>
       </div>
       <Suspense fallback={<ChartsRowSkeleton />}>

@@ -1,7 +1,6 @@
 import "server-only";
 
 import { cacheLife, cacheTag } from "next/cache";
-import { cache } from "react";
 import { formatUnits, isHex } from "viem";
 
 import { prisma } from "@/db";
@@ -56,53 +55,44 @@ export async function loadChartSeries(
   status: ChannelStatus | null,
 ) {
   "use cache";
-  cacheLife({ stale: 600, revalidate: 600, expire: 1800 });
+  cacheLife({ stale: 300, revalidate: 3600, expire: 86400 });
   cacheTag("channels");
 
+  // Reads the daily rollup materialized views (prisma/sql/aggregates.sql),
+  // refreshed by the sync cron. Day-granularity cutoffs: ranges include the
+  // full first day instead of a partial one.
   const cutoff = rangeCutoff(range);
+  const dayFilter = cutoff
+    ? Prisma.sql`day >= ${cutoff}::date`
+    : Prisma.sql`TRUE`;
   const statusFilter = status
-    ? Prisma.sql`AND status = ${status}::"ChannelStatus"`
-    : Prisma.empty;
+    ? Prisma.sql`status = ${status}::"ChannelStatus"`
+    : Prisma.sql`TRUE`;
 
   const [sessionRows, volumeRows, buyerRows] = await Promise.all([
     prisma.$queryRaw<DayCountRow[]>`
-      SELECT to_char(date_trunc('day', opened_at), 'YYYY-MM-DD') AS day,
-             count(*)::int AS value
-      FROM channels
-      WHERE TRUE
-      ${cutoff ? Prisma.sql`AND opened_at >= ${cutoff}` : Prisma.empty}
-      ${statusFilter}
+      SELECT day::text AS day, sum(sessions)::int AS value
+      FROM channel_daily
+      WHERE ${dayFilter} AND ${statusFilter}
       GROUP BY 1
       ORDER BY 1
     `,
     prisma.$queryRaw<DayVolumeRow[]>`
-      SELECT to_char(date_trunc('day', ts), 'YYYY-MM-DD') AS day,
-             coalesce(sum(volume), 0)::text AS value
-      FROM channel_events
-      WHERE volume > 0
-      ${cutoff ? Prisma.sql`AND ts >= ${cutoff}` : Prisma.empty}
-      ${
-        status
-          ? Prisma.sql`AND channel_id IN (
-              SELECT channel_id FROM channels
-              WHERE status = ${status}::"ChannelStatus"
-            )`
-          : Prisma.empty
-      }
+      SELECT day::text AS day, sum(volume)::text AS value
+      FROM volume_daily
+      WHERE ${dayFilter} AND ${statusFilter}
       GROUP BY 1
       ORDER BY 1
     `,
     prisma.$queryRaw<DayBuyersRow[]>`
-      SELECT to_char(date_trunc('day', first_seen), 'YYYY-MM-DD') AS day,
-             count(*)::int AS value
+      SELECT first_day::text AS day, count(*)::int AS value
       FROM (
-        SELECT payer, min(opened_at) AS first_seen
-        FROM channels
-        WHERE TRUE
-        ${statusFilter}
+        SELECT payer, min(first_day) AS first_day
+        FROM payer_first_seen
+        WHERE ${statusFilter}
         GROUP BY payer
-      ) first_buyers
-      ${cutoff ? Prisma.sql`WHERE first_seen >= ${cutoff}` : Prisma.empty}
+      ) buyers
+      WHERE ${cutoff ? Prisma.sql`first_day >= ${cutoff}::date` : Prisma.sql`TRUE`}
       GROUP BY 1
       ORDER BY 1
     `,
@@ -126,7 +116,7 @@ export async function loadSessionsPage(
   range: TimeRange,
 ) {
   "use cache";
-  cacheLife({ stale: 600, revalidate: 600, expire: 1800 });
+  cacheLife({ stale: 300, revalidate: 3600, expire: 86400 });
   cacheTag("channels");
 
   const cutoff = rangeCutoff(range);
@@ -168,9 +158,11 @@ export async function loadSessionsPage(
   };
 }
 
-async function loadSessionUncached(id: string): Promise<SessionDetail | null> {
+export async function loadSessionData(
+  id: string,
+): Promise<SessionDetail | null> {
   "use cache";
-  cacheLife({ stale: 600, revalidate: 600, expire: 1800 });
+  cacheLife({ stale: 300, revalidate: 3600, expire: 86400 });
   cacheTag("channels", `session-${id}`);
 
   const channel = await prisma.channel.findUnique({
@@ -238,8 +230,6 @@ async function loadSessionUncached(id: string): Promise<SessionDetail | null> {
     events,
   };
 }
-
-export const loadSessionData = cache(loadSessionUncached);
 
 export async function searchSessions(q: string): Promise<SearchHit[]> {
   const rows = await prisma.channel.findMany({
