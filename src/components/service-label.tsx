@@ -22,15 +22,15 @@ export function ServiceLabel({
         alt=""
         width={16}
         height={16}
-        className="size-4 rounded-sm"
+        className="relative top-[0.05em] mr-1 inline-block size-4 rounded-sm align-middle"
       />
-      {service.name}
+      <span className="inline align-middle">{service.name}</span>
     </>
   );
 
   if (!link) {
     return (
-      <span className="inline-flex items-center gap-1.5" translate="no">
+      <span className="inline align-middle whitespace-nowrap" translate="no">
         {label}
       </span>
     );
@@ -41,7 +41,7 @@ export function ServiceLabel({
       href={service.href}
       target="_blank"
       rel="noreferrer"
-      className="relative inline-flex items-center gap-1.5 underline-offset-4 hover:underline"
+      className="inline align-middle whitespace-nowrap underline-offset-4 hover:underline"
       translate="no"
     >
       {label}

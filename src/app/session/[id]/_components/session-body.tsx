@@ -2,10 +2,10 @@ import { ArrowRightLeft, Lock, Undo2, Wallet } from "lucide-react";
 import { notFound } from "next/navigation";
 import { formatUsd } from "@/channels/format";
 import { loadSessionData } from "@/channels/queries";
+import { SessionTimeline } from "@/components/session-timeline";
 import { Card, CardContent } from "@/components/ui/card";
 
 import { SessionBalance } from "./session-balance";
-import { SessionTimeline } from "./session-timeline";
 
 const STATS = [
   { key: "remaining", label: "In escrow", icon: Lock },
