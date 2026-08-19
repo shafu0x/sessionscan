@@ -16,7 +16,6 @@ export async function GET(request: NextRequest) {
   try {
     const result = await runSync();
     revalidateTag("channels", "max");
-    sendDiscordAlert(`Sync succeeded — ${result.events} events`);
     return NextResponse.json({ ok: true, ...result });
   } catch (error) {
     const message = error instanceof Error ? error.message : "Sync failed";
