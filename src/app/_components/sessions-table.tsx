@@ -120,7 +120,7 @@ export async function SessionsTable({
   const paginated = await loadSessionsPage(page, sort, dir, status, range);
 
   return (
-    <Card className="py-0 pt-(--card-spacing) pb-(--card-spacing) md:pt-0">
+    <Card className="py-0 pb-(--card-spacing)">
       <CardContent className="flex flex-col">
         {paginated.totalItems === 0 ? (
           <div className="flex flex-col items-center gap-2 py-8 text-muted-foreground">
@@ -129,13 +129,13 @@ export async function SessionsTable({
           </div>
         ) : (
           <>
-            <div className="flex flex-col gap-3 md:hidden">
+            <div className="flex flex-col divide-y divide-border md:hidden">
               {paginated.items.map((session) => (
                 <Link
                   key={session.channelId}
                   href={`/session/${session.channelId}`}
                   prefetch={false}
-                  className="flex min-h-11 flex-col gap-2 rounded-lg border border-border p-3"
+                  className="flex min-h-11 flex-col gap-2 py-3"
                 >
                   <div className="flex items-center justify-between gap-2">
                     <StatusBadge status={session.status} />
@@ -148,17 +148,14 @@ export async function SessionsTable({
                     </time>
                   </div>
                   <div className="flex items-center justify-between gap-2">
-                    <p className="truncate font-mono text-sm" translate="no">
-                      {truncateHex(session.channelId)}
+                    <p className="min-w-0 truncate text-sm" translate="no">
+                      <ServiceLabel payee={session.payee} link={false} />
                     </p>
                     <p className="shrink-0 font-mono text-xs tabular-nums">
                       ${formatUsd(session.settled)} / $
                       {formatUsd(session.deposit)}
                     </p>
                   </div>
-                  <p className="font-mono text-muted-foreground text-xs">
-                    <ServiceLabel payee={session.payee} link={false} />
-                  </p>
                 </Link>
               ))}
             </div>

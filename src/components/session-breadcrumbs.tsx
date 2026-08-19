@@ -28,15 +28,15 @@ export function SessionBreadcrumbs({
               SessionScan
             </BreadcrumbLink>
           ) : (
-            <BreadcrumbPage className="flex items-center text-base">
+            <BreadcrumbPage className="flex items-center font-semibold text-3xl tracking-tight sm:font-normal sm:text-base sm:tracking-normal">
               <Image
                 src="/icon.svg"
                 alt=""
-                width={16}
-                height={16}
-                className="size-4 shrink-0 rounded-sm"
+                width={36}
+                height={36}
+                className="size-9 shrink-0 rounded-lg sm:size-4 sm:rounded-sm"
               />
-              <span className="ml-0.5">essionScan</span>
+              <span className="ml-1 sm:ml-0.5">essionScan</span>
             </BreadcrumbPage>
           )}
         </BreadcrumbItem>
