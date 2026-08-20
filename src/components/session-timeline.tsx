@@ -8,6 +8,7 @@ import type { SessionEventView } from "@/channels/types";
 import { Card, CardContent } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { TablePagination } from "@/components/ui/table-pagination";
+import { formatAbsoluteTime } from "@/lib/date";
 
 const PAGE_SIZE = 10;
 
@@ -65,10 +66,12 @@ export function SessionTimeline({
   id,
   events,
   page,
+  timestamps = "relative",
 }: {
   id: string;
   events: SessionEventView[];
   page: number;
+  timestamps?: "relative" | "absolute";
 }) {
   const pageCount = Math.max(1, Math.ceil(events.length / PAGE_SIZE));
   const safePage = Math.min(Math.max(page, 1), pageCount);
@@ -105,7 +108,9 @@ export function SessionTimeline({
                     dateTime={event.ts}
                     title={event.ts}
                   >
-                    {formatRelativeTime(new Date(event.ts))}
+                    {timestamps === "absolute"
+                      ? formatAbsoluteTime(new Date(event.ts))
+                      : formatRelativeTime(new Date(event.ts))}
                   </time>
                 </div>
                 {amount ? (

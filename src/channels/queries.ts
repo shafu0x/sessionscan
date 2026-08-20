@@ -9,6 +9,7 @@ import { client } from "@/viem";
 
 import type {
   DayPoint,
+  OverviewStats,
   SearchHit,
   SessionDetail,
   SessionEventView,
@@ -106,6 +107,36 @@ export async function loadChartSeries(
     })),
     buyers: cumulative(toDayPoints(buyerRows)),
   };
+}
+
+export async function loadOverviewStats(): Promise<OverviewStats> {
+  "use cache";
+  cacheLife({ stale: 300, revalidate: 3600, expire: 86400 });
+  cacheTag("channels");
+
+  // Single round trip: every headline number the explainer page quotes.
+  const [row] = await prisma.$queryRaw<OverviewStats[]>`
+    SELECT
+      (SELECT count(*) FROM channels)::int AS sessions,
+      (SELECT count(*) FROM channels WHERE status = 'closed')::int AS closed,
+      (SELECT count(*) FROM channel_events)::int AS events,
+      (SELECT count(DISTINCT payer) FROM channels)::int AS payers,
+      (SELECT coalesce(sum(volume), 0)::text
+        FROM channel_events WHERE volume > 0) AS settled,
+      (SELECT coalesce(sum(deposit - settled), 0)::text
+        FROM channels WHERE status IN ('open', 'closing')) AS escrow
+  `;
+
+  return (
+    row ?? {
+      sessions: 0,
+      closed: 0,
+      events: 0,
+      payers: 0,
+      settled: "0",
+      escrow: "0",
+    }
+  );
 }
 
 export async function loadSessionsPage(

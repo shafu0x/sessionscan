@@ -8,6 +8,15 @@ export type DayPoint = {
   value: number;
 };
 
+export type OverviewStats = {
+  sessions: number;
+  closed: number;
+  events: number;
+  payers: number;
+  settled: string;
+  escrow: string;
+};
+
 export type SessionSort = "opened" | "deposit" | "settled";
 export type SortDir = "asc" | "desc";
 export type TimeRange = "1d" | "7d" | "30d" | "all";
