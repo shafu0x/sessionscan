@@ -1,8 +1,8 @@
-import { formatUsd } from "@/channels/format";
 import type { SessionDetail } from "@/channels/types";
 import { Card, CardContent } from "@/components/ui/card";
 
-import { BalanceChart, type BalancePoint } from "./balance-chart";
+import type { BalancePoint } from "./balance-chart";
+import { BalanceChartDynamic } from "./balance-chart-dynamic";
 
 function num(value: string | undefined): number {
   const parsed = Number.parseFloat(value ?? "0");
@@ -16,41 +16,31 @@ function buildPoints(session: SessionDetail): BalancePoint[] {
   const points: BalancePoint[] = [];
 
   for (const event of session.events) {
-    let label: string;
+    const before = escrow;
 
     switch (event.type) {
       case "opened": {
-        const deposit = num(event.amounts.deposit ?? session.deposit);
-        escrow += deposit;
-        label = `Opened · $${formatUsd(String(deposit))}`;
+        escrow += num(event.amounts.deposit ?? session.deposit);
         break;
       }
       case "top_up": {
-        const amount = num(event.amounts.additionalDeposit);
-        escrow += amount;
-        label = `Top up · +$${formatUsd(String(amount))}`;
+        escrow += num(event.amounts.additionalDeposit);
         break;
       }
       case "settled": {
         const amount = num(event.amounts.deltaPaid);
         escrow = Math.max(0, escrow - amount);
         settled += amount;
-        label = `Settled · $${formatUsd(String(amount))}`;
         break;
       }
-      case "close_requested": {
-        label = "Close requested";
-        break;
-      }
+      case "close_requested":
       case "close_cancelled": {
-        label = "Close cancelled";
         break;
       }
       case "closed": {
         settled = num(event.amounts.settledToPayee ?? String(settled));
         refunded = num(event.amounts.refundedToPayer);
         escrow = 0;
-        label = `Closed · settled $${formatUsd(String(settled))}`;
         break;
       }
       default: {
@@ -64,14 +54,15 @@ function buildPoints(session: SessionDetail): BalancePoint[] {
       escrow,
       settled,
       refunded,
+      delta: escrow - before,
+      type: event.type,
       kind: "event",
-      label,
     });
   }
 
   const last = points.at(-1);
   if (session.status !== "closed" && last) {
-    points.push({ ...last, ts: Date.now(), kind: "now", label: "Now" });
+    points.push({ ...last, ts: Date.now(), delta: 0, kind: "now" });
   }
 
   return points;
@@ -84,7 +75,7 @@ export function SessionBalance({ session }: { session: SessionDetail }) {
   return (
     <Card>
       <CardContent>
-        <BalanceChart points={points} />
+        <BalanceChartDynamic points={points} />
       </CardContent>
     </Card>
   );

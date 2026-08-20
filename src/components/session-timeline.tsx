@@ -1,46 +1,16 @@
-import { ArrowUp, Banknote, Lock, Plus, Timer, X } from "lucide-react";
 import {
   explorerTxUrl,
   formatRelativeTime,
   formatUsd,
 } from "@/channels/format";
 import type { SessionEventView } from "@/channels/types";
+import { EVENT_META } from "@/components/session-event-meta";
 import { Card, CardContent } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { TablePagination } from "@/components/ui/table-pagination";
 import { formatAbsoluteTime } from "@/lib/date";
 
 const PAGE_SIZE = 10;
-
-const EVENT_ICON = {
-  opened: Plus,
-  top_up: ArrowUp,
-  settled: Banknote,
-  close_requested: Timer,
-  close_cancelled: X,
-  closed: Lock,
-} as const;
-
-function actionFor(event: SessionEventView): string {
-  switch (event.type) {
-    case "opened":
-      return "Opened";
-    case "top_up":
-      return "Top up";
-    case "settled":
-      return "Settled";
-    case "close_requested":
-      return "Close requested";
-    case "close_cancelled":
-      return "Close cancelled";
-    case "closed":
-      return "Closed";
-    default: {
-      const exhaustive: never = event.type;
-      throw new Error(`unhandled event ${exhaustive}`);
-    }
-  }
-}
 
 function amountFor(event: SessionEventView): string | null {
   switch (event.type) {
@@ -84,7 +54,7 @@ export function SessionTimeline({
     <Card>
       <CardContent className="flex flex-col">
         {pageEvents.map((event, index) => {
-          const Icon = EVENT_ICON[event.type];
+          const { icon: Icon, label } = EVENT_META[event.type];
           const amount = amountFor(event);
           return (
             <div key={`${event.txHash}-${event.logIndex}`}>
@@ -101,7 +71,7 @@ export function SessionTimeline({
                     rel="noreferrer"
                     className="text-sm hover:text-muted-foreground"
                   >
-                    {actionFor(event)}
+                    {label}
                   </a>
                   <time
                     className="block text-muted-foreground text-xs"
