@@ -68,6 +68,8 @@ Rollups are regular tables (not matviews) so `db push` cannot drop them. Sync re
 
 Retention on `channel_events` is not enabled yet. When it is, add a windowed `DELETE` to the sync cron; autovacuum reuses the space. `channels` still grows unbounded.
 
+Read [docs/database-capacity.md](../../docs/database-capacity.md) before planning any retention or storage work — it has measured table sizes, growth rate, and the traps that make the obvious approaches wrong.
+
 ## Query tips
 
 - **Indexing window**: sync starts at block `24_458_546` (`START_BLOCK` in `src/sync/run.ts`); earliest indexed event is `min(ts)` on `channel_events`.
