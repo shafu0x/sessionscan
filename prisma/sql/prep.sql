@@ -1,5 +1,7 @@
 -- Instant metadata-only prep so old and new Prisma clients can coexist
--- during the reclaim rollout. Safe to re-run.
+-- during the reclaim rollout: run this, deploy, then run reclaim.sql.
+-- Historical record of an applied migration — it errors once reclaim.sql
+-- has dropped these columns.
 
 ALTER TABLE channel_events
   ALTER COLUMN payer DROP NOT NULL,
