@@ -1,0 +1,78 @@
+---
+description: How to connect to and query the Neon Postgres database for sessionscan
+alwaysApply: true
+---
+
+# Database access
+
+Neon Postgres via Prisma 7. Connection string lives in `.env.local` as `DATABASE_URL`. Copy `.env.example` if missing; pull production/preview vars with:
+
+```bash
+vercel env pull .env.local --environment=production --scope shafu -y
+```
+
+Do not commit `.env.local`. Never print or log the full connection string.
+
+Neon free/launch compute is capped at **512 MB** (`neon.max_cluster_size`). Check usage with `SELECT pg_size_pretty(pg_database_size(current_database()));`. `DELETE` does not shrink that number until a table rewrite (`VACUUM FULL`); a rewrite needs room for a second copy of the heap, so drop secondary indexes first if headroom is tight.
+
+## App code
+
+Import the shared client from `@/db` (server-only). Do not instantiate `PrismaClient` elsewhere.
+
+```typescript
+import { prisma } from "@/db";
+
+const rows = await prisma.channel.findMany({ take: 10 });
+```
+
+Generated client: `@/generated/prisma/client`. Schema: `prisma/schema.prisma`.
+
+## Ad-hoc queries (shell)
+
+Load env, then use `psql`:
+
+```bash
+set -a && . ./.env.local && set +a
+psql "$DATABASE_URL" -c "SELECT count(*) FROM channel_events;"
+```
+
+Multi-statement SQL files (`VACUUM FULL`, `CREATE INDEX CONCURRENTLY`, matview drops) must run through `psql`, not Prisma. Prefer a direct (non-pooler) Neon URL for `VACUUM FULL`.
+
+## Commands
+
+| Command | Purpose |
+| --- | --- |
+| `pnpm db:push` | Apply Prisma schema to Neon |
+| `pnpm db:sql` | Apply `prisma/sql/aggregates.sql` (rollup tables + backfill) |
+| `pnpm db:prep` | One-off: make unused columns nullable before reclaim |
+| `pnpm db:reclaim` | One-off: drop unused columns, `VACUUM FULL`, rebuild indexes. Pause the sync cron first. |
+| `pnpm db:studio` | Prisma Studio GUI |
+| `pnpm db:generate` | Regenerate client after schema changes |
+
+Prefer `pnpm db:push` for schema changes. Run `pnpm db:sql` after schema setup or when `prisma/sql/aggregates.sql` changes.
+
+Do **not** `db:push` the slimmed `Channel`/`ChannelEvent` models until `reclaim.sql` has dropped those columns — Prisma would drop them without the vacuum sequence and can exceed the 512 MB ceiling.
+
+## Tables
+
+| Table | Maps to | Notes |
+| --- | --- | --- |
+| `channels` | `Channel` | One row per MPP channel |
+| `channel_events` | `ChannelEvent` | On-chain events; `ts` is block time; PK is `(tx_hash, log_index)` |
+| `sync_cursor` | `SyncCursor` | TIDX sync position (`from_block`, `from_log_index`) |
+| `channel_daily` | `ChannelDaily` | Persisted daily session counts by status |
+| `volume_daily` | `VolumeDaily` | Persisted daily volume + event counts by status |
+| `payer_first_seen` | `PayerFirstSeen` | First-seen day per (payer, status); `LEAST`-upsert only |
+
+Rollups are regular tables (not matviews) so `db push` cannot drop them. Sync refreshes only the days a batch touched. `payer_first_seen` never moves a first-seen date forward, so a later retention delete on `channel_events` keeps chart and explainer history.
+
+Retention on `channel_events` is not enabled yet. When it is, add a windowed `DELETE` to the sync cron; autovacuum reuses the space. `channels` still grows unbounded.
+
+## Query tips
+
+- **Indexing window**: sync starts at block `24_458_546` (`START_BLOCK` in `src/sync/run.ts`); earliest indexed event is `min(ts)` on `channel_events`.
+- **Read-only by default** for exploration; confirm before `UPDATE`/`DELETE`/`TRUNCATE` on production.
+
+## Pooled vs direct
+
+App runtime and `psql`/`db:push` use whatever URL is in `DATABASE_URL`. For heavy DDL (`VACUUM FULL`, large `CREATE INDEX`), strip `-pooler` from the Neon host.

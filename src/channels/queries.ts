@@ -59,9 +59,9 @@ export async function loadChartSeries(
   cacheLife({ stale: 300, revalidate: 3600, expire: 86400 });
   cacheTag("channels");
 
-  // Reads the daily rollup materialized views (prisma/sql/aggregates.sql),
-  // refreshed by the sync cron. Day-granularity cutoffs: ranges include the
-  // full first day instead of a partial one.
+  // Reads the persisted daily rollups (prisma/sql/aggregates.sql),
+  // refreshed incrementally by the sync cron. Day-granularity cutoffs:
+  // ranges include the full first day instead of a partial one.
   const cutoff = rangeCutoff(range);
   const dayFilter = cutoff
     ? Prisma.sql`day >= ${cutoff}::date`
@@ -114,15 +114,17 @@ export async function loadOverviewStats(): Promise<OverviewStats> {
   cacheLife({ stale: 300, revalidate: 3600, expire: 86400 });
   cacheTag("channels");
 
-  // Single round trip: every headline number the explainer page quotes.
+  // Single round trip: rollups hold historical totals so a later
+  // retention cutoff does not rewrite the explainer numbers. Escrow
+  // stays live against retained open/closing channels.
   const [row] = await prisma.$queryRaw<OverviewStats[]>`
     SELECT
-      (SELECT count(*) FROM channels)::int AS sessions,
-      (SELECT count(*) FROM channels WHERE status = 'closed')::int AS closed,
-      (SELECT count(*) FROM channel_events)::int AS events,
-      (SELECT count(DISTINCT payer) FROM channels)::int AS payers,
-      (SELECT coalesce(sum(volume), 0)::text
-        FROM channel_events WHERE volume > 0) AS settled,
+      (SELECT coalesce(sum(sessions), 0) FROM channel_daily)::int AS sessions,
+      (SELECT coalesce(sum(sessions), 0)
+        FROM channel_daily WHERE status = 'closed')::int AS closed,
+      (SELECT coalesce(sum(events), 0) FROM volume_daily)::int AS events,
+      (SELECT count(DISTINCT payer) FROM payer_first_seen)::int AS payers,
+      (SELECT coalesce(sum(volume), 0)::text FROM volume_daily) AS settled,
       (SELECT coalesce(sum(deposit - settled), 0)::text
         FROM channels WHERE status IN ('open', 'closing')) AS escrow
   `;

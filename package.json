@@ -17,6 +17,8 @@
     "db:generate": "prisma generate",
     "db:push": "prisma db push",
     "db:sql": "set -a && . ./.env.local && set +a && psql \"$DATABASE_URL\" -v ON_ERROR_STOP=1 -f prisma/sql/aggregates.sql",
+    "db:prep": "set -a && . ./.env.local && set +a && psql \"$DATABASE_URL\" -v ON_ERROR_STOP=1 -f prisma/sql/prep.sql",
+    "db:reclaim": "set -a && . ./.env.local && set +a && psql \"$DATABASE_URL\" -v ON_ERROR_STOP=1 -f prisma/sql/reclaim.sql",
     "db:studio": "prisma studio"
   },
   "dependencies": {
