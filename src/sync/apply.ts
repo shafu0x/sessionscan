@@ -67,7 +67,6 @@ type ChannelDraft = {
   payee: string;
   operator: string;
   token: string;
-  salt: string;
   deposit: Prisma.Decimal;
   settled: Prisma.Decimal;
   refunded: Prisma.Decimal;
@@ -75,6 +74,22 @@ type ChannelDraft = {
   openedAt: Date;
   lastEventAt: Date;
   closedAt: Date | null;
+};
+
+export type ApplyResult = {
+  applied: number;
+  openedDays: string[];
+  eventDays: string[];
+  statusChangedIds: string[];
+  payers: { payer: string; status: ChannelStatus; firstDay: Date }[];
+};
+
+const EMPTY_APPLY: ApplyResult = {
+  applied: 0,
+  openedDays: [],
+  eventDays: [],
+  statusChangedIds: [],
+  payers: [],
 };
 
 function applyToDraft(
@@ -95,7 +110,6 @@ function applyToDraft(
       payee,
       operator: event.operator.toLowerCase(),
       token: event.token.toLowerCase(),
-      salt: event.salt.toLowerCase(),
       deposit: decimal(event.deposit),
       settled: draft?.settled ?? new Prisma.Decimal(0),
       refunded: draft?.refunded ?? new Prisma.Decimal(0),
@@ -145,8 +159,10 @@ function applyToDraft(
   }
 }
 
-export async function applyEvents(events: IndexedEvent[]): Promise<number> {
-  if (events.length === 0) return 0;
+export async function applyEvents(
+  events: IndexedEvent[],
+): Promise<ApplyResult> {
+  if (events.length === 0) return EMPTY_APPLY;
 
   const txHashes = [
     ...new Set(events.map((event) => event.txHash.toLowerCase())),
@@ -160,7 +176,7 @@ export async function applyEvents(events: IndexedEvent[]): Promise<number> {
   const fresh = events.filter(
     (event) => !seen.has(`${event.txHash.toLowerCase()}:${event.logIndex}`),
   );
-  if (fresh.length === 0) return 0;
+  if (fresh.length === 0) return EMPTY_APPLY;
 
   const channelIds = [
     ...new Set(fresh.map((event) => event.channelId.toLowerCase())),
@@ -177,7 +193,6 @@ export async function applyEvents(events: IndexedEvent[]): Promise<number> {
         payee: row.payee,
         operator: row.operator,
         token: row.token,
-        salt: row.salt,
         deposit: row.deposit,
         settled: row.settled,
         refunded: row.refunded,
@@ -190,18 +205,20 @@ export async function applyEvents(events: IndexedEvent[]): Promise<number> {
   );
 
   const eventRows: Prisma.ChannelEventCreateManyInput[] = [];
+  const eventDays = new Set<string>();
+  const statusChangedIds = new Set<string>();
 
   for (const event of fresh) {
     const channelId = event.channelId.toLowerCase();
-    const next = applyToDraft(drafts.get(channelId), event);
+    const prev = drafts.get(channelId);
+    const next = applyToDraft(prev, event);
     if (!next) continue;
+    if (prev && prev.status !== next.status) statusChangedIds.add(channelId);
     drafts.set(channelId, next);
+    eventDays.add(event.timestamp.toISOString().slice(0, 10));
     eventRows.push({
       channelId,
       type: event.type,
-      payer: event.payer.toLowerCase(),
-      payee: event.payee.toLowerCase(),
-      token: next.token,
       txHash: event.txHash.toLowerCase(),
       logIndex: event.logIndex,
       blockNum: event.blockNum,
@@ -223,7 +240,6 @@ export async function applyEvents(events: IndexedEvent[]): Promise<number> {
           ${draft.payee},
           ${draft.operator},
           ${draft.token},
-          ${draft.salt},
           ${draft.deposit},
           ${draft.settled},
           ${draft.refunded},
@@ -236,7 +252,7 @@ export async function applyEvents(events: IndexedEvent[]): Promise<number> {
 
     await prisma.$executeRaw`
       INSERT INTO channels (
-        channel_id, payer, payee, operator, token, salt,
+        channel_id, payer, payee, operator, token,
         deposit, settled, refunded, status, opened_at, last_event_at, closed_at
       )
       VALUES ${Prisma.join(values)}
@@ -245,7 +261,6 @@ export async function applyEvents(events: IndexedEvent[]): Promise<number> {
         payee = EXCLUDED.payee,
         operator = EXCLUDED.operator,
         token = EXCLUDED.token,
-        salt = EXCLUDED.salt,
         deposit = EXCLUDED.deposit,
         settled = EXCLUDED.settled,
         refunded = EXCLUDED.refunded,
@@ -261,5 +276,19 @@ export async function applyEvents(events: IndexedEvent[]): Promise<number> {
     skipDuplicates: true,
   });
 
-  return eventRows.length;
+  return {
+    applied: eventRows.length,
+    openedDays: [
+      ...new Set(
+        draftsList.map((draft) => draft.openedAt.toISOString().slice(0, 10)),
+      ),
+    ],
+    eventDays: [...eventDays],
+    statusChangedIds: [...statusChangedIds],
+    payers: draftsList.map((draft) => ({
+      payer: draft.payer,
+      status: draft.status,
+      firstDay: draft.openedAt,
+    })),
+  };
 }

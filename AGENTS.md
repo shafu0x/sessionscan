@@ -26,8 +26,10 @@ Next.js 16 explorer for Tempo MPP sessions (TIP-1034 channels). Postgres via Pri
 pnpm dev          # local server
 pnpm sync         # fetch channel logs (dev server must be running)
 pnpm check        # biome + tsc + knip
-pnpm db:push      # apply schema to Neon
-pnpm db:sql       # apply prisma/sql/aggregates.sql (matviews + partial index) to Neon
+pnpm db:push      # apply Prisma schema to Neon
+pnpm db:sql       # apply prisma/sql/aggregates.sql (rollup tables) to Neon
+pnpm db:prep      # one-off: nullable unused columns before reclaim
+pnpm db:reclaim   # one-off: drop unused columns, VACUUM FULL (pause cron)
 ```
 
 Node **20.20.0** (`.nvmrc`), pnpm **9.15.0** (`packageManager` in `package.json`).

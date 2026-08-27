@@ -2,13 +2,22 @@ import "server-only";
 
 import { prisma } from "@/db";
 
-import { applyEvents } from "./apply";
+import { type ApplyResult, applyEvents } from "./apply";
 import { decodeLog } from "./decode";
 import { fetchLogs, PAGE_SIZE } from "./fetch";
+import { refreshRollups } from "./rollups";
 
 const START_BLOCK = 24_458_546;
 const CURSOR_ID = 1;
 const BUDGET_MS = 240_000;
+
+function mergeApply(into: ApplyResult, next: ApplyResult) {
+  into.applied += next.applied;
+  into.openedDays.push(...next.openedDays);
+  into.eventDays.push(...next.eventDays);
+  into.statusChangedIds.push(...next.statusChangedIds);
+  into.payers.push(...next.payers);
+}
 
 export async function runSync() {
   const started = Date.now();
@@ -22,7 +31,13 @@ export async function runSync() {
   let fromLogIndex = cursor.fromLogIndex;
   let pages = 0;
   let events = 0;
-  let applied = 0;
+  const applied: ApplyResult = {
+    applied: 0,
+    openedDays: [],
+    eventDays: [],
+    statusChangedIds: [],
+    payers: [],
+  };
 
   while (Date.now() - started < BUDGET_MS) {
     const rows = await fetchLogs(fromBlock, fromLogIndex);
@@ -33,7 +48,7 @@ export async function runSync() {
     if (rows.length === 0) break;
 
     const decoded = rows.map(decodeLog);
-    applied += await applyEvents(decoded);
+    mergeApply(applied, await applyEvents(decoded));
 
     const last = rows[rows.length - 1];
     if (!last) break;
@@ -48,20 +63,12 @@ export async function runSync() {
     if (rows.length < PAGE_SIZE) break;
   }
 
-  if (applied > 0) {
-    // CONCURRENTLY avoids blocking chart reads; it requires the unique
-    // indexes created in prisma/sql/aggregates.sql.
-    for (const view of ["channel_daily", "volume_daily", "payer_first_seen"]) {
-      await prisma.$executeRawUnsafe(
-        `REFRESH MATERIALIZED VIEW CONCURRENTLY ${view}`,
-      );
-    }
-  }
+  await refreshRollups(applied);
 
   return {
     pages,
     events,
-    applied,
+    applied: applied.applied,
     fromBlock,
     fromLogIndex,
     elapsedMs: Date.now() - started,

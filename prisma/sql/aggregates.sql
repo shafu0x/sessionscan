@@ -1,50 +1,84 @@
--- Aggregates and indexes that prisma/schema.prisma cannot express.
--- Run with `pnpm db:sql`. Idempotent. Verified: `prisma db push` leaves the
--- partial index and materialized views alone, so this only needs re-running
--- when this file changes or against a fresh database.
--- CONCURRENTLY requires autocommit, so this file must run through psql
--- (one statement per transaction), not `prisma db execute`.
+-- Persisted daily rollups backing the homepage charts and overview stats.
+-- Prisma models in schema.prisma own these tables; this script converts
+-- leftover materialized views and backfills empty tables from full history.
+-- Run with `pnpm db:sql`. Idempotent.
+--
+-- CONCURRENTLY / DROP MATERIALIZED VIEW need autocommit, so this file
+-- must run through psql (one statement per transaction), not Prisma.
 
--- Partial covering index for the daily volume rollup: only ~40% of events
--- carry volume, and INCLUDE makes the refresh an index-only scan.
-CREATE INDEX CONCURRENTLY IF NOT EXISTS channel_events_volume_ts_idx
-  ON channel_events (ts) INCLUDE (volume)
-  WHERE volume > 0;
+DROP INDEX IF EXISTS channel_events_volume_ts_idx;
 
--- Daily rollups backing the homepage charts, keyed by (day, status) so the
--- status filter keeps its exact semantics. Refreshed by the sync cron.
--- All source columns are `timestamp without time zone`, so ::date is
--- timezone-independent. Unique indexes are required for REFRESH CONCURRENTLY.
+DO $$
+BEGIN
+  IF EXISTS (
+    SELECT 1
+    FROM pg_class c
+    JOIN pg_namespace n ON n.oid = c.relnamespace
+    WHERE n.nspname = 'public'
+      AND c.relname = 'channel_daily'
+      AND c.relkind = 'm'
+  ) THEN
+    DROP MATERIALIZED VIEW channel_daily;
+  END IF;
+  IF EXISTS (
+    SELECT 1
+    FROM pg_class c
+    JOIN pg_namespace n ON n.oid = c.relnamespace
+    WHERE n.nspname = 'public'
+      AND c.relname = 'volume_daily'
+      AND c.relkind = 'm'
+  ) THEN
+    DROP MATERIALIZED VIEW volume_daily;
+  END IF;
+  IF EXISTS (
+    SELECT 1
+    FROM pg_class c
+    JOIN pg_namespace n ON n.oid = c.relnamespace
+    WHERE n.nspname = 'public'
+      AND c.relname = 'payer_first_seen'
+      AND c.relkind = 'm'
+  ) THEN
+    DROP MATERIALIZED VIEW payer_first_seen;
+  END IF;
+END $$;
 
-DROP MATERIALIZED VIEW IF EXISTS channel_daily;
-CREATE MATERIALIZED VIEW channel_daily AS
-SELECT date_trunc('day', opened_at)::date AS day,
-       status,
-       count(*)::int AS sessions
+CREATE TABLE IF NOT EXISTS channel_daily (
+  day date NOT NULL,
+  status "ChannelStatus" NOT NULL,
+  sessions integer NOT NULL,
+  PRIMARY KEY (day, status)
+);
+
+CREATE TABLE IF NOT EXISTS volume_daily (
+  day date NOT NULL,
+  status "ChannelStatus" NOT NULL,
+  volume decimal(20, 6) NOT NULL,
+  events integer NOT NULL,
+  PRIMARY KEY (day, status)
+);
+
+CREATE TABLE IF NOT EXISTS payer_first_seen (
+  payer text NOT NULL,
+  status "ChannelStatus" NOT NULL,
+  first_day date NOT NULL,
+  PRIMARY KEY (payer, status)
+);
+
+INSERT INTO channel_daily (day, status, sessions)
+SELECT opened_at::date, status, count(*)::int
 FROM channels
+WHERE NOT EXISTS (SELECT 1 FROM channel_daily)
 GROUP BY 1, 2;
-CREATE UNIQUE INDEX channel_daily_key ON channel_daily (day, status);
 
-DROP MATERIALIZED VIEW IF EXISTS volume_daily;
-CREATE MATERIALIZED VIEW volume_daily AS
-SELECT date_trunc('day', e.ts)::date AS day,
-       c.status,
-       sum(e.volume) AS volume
+INSERT INTO volume_daily (day, status, volume, events)
+SELECT e.ts::date, c.status, coalesce(sum(e.volume), 0), count(*)::int
 FROM channel_events e
 JOIN channels c USING (channel_id)
-WHERE e.volume > 0
+WHERE NOT EXISTS (SELECT 1 FROM volume_daily)
 GROUP BY 1, 2;
-CREATE UNIQUE INDEX volume_daily_key ON volume_daily (day, status);
 
--- First-seen date per (payer, status): min over the status subset is what
--- makes the buyers chart's status filter correct, and min across statuses
--- reproduces the unfiltered chart. ~1,700 rows, so the day rollup and
--- cumulative sum stay in the query.
-DROP MATERIALIZED VIEW IF EXISTS payer_first_seen;
-CREATE MATERIALIZED VIEW payer_first_seen AS
-SELECT payer,
-       status,
-       min(opened_at)::date AS first_day
+INSERT INTO payer_first_seen (payer, status, first_day)
+SELECT payer, status, min(opened_at)::date
 FROM channels
+WHERE NOT EXISTS (SELECT 1 FROM payer_first_seen)
 GROUP BY 1, 2;
-CREATE UNIQUE INDEX payer_first_seen_key ON payer_first_seen (payer, status);

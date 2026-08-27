@@ -23,19 +23,18 @@ enum ChannelEventType {
 }
 
 model Channel {
-  channelId   String        @id @map("channel_id")
+  channelId   String         @id @map("channel_id")
   payer       String
   payee       String
   operator    String
   token       String
-  salt        String
-  deposit     Decimal       @db.Decimal(20, 6)
-  settled     Decimal       @db.Decimal(20, 6)
-  refunded    Decimal       @db.Decimal(20, 6)
+  deposit     Decimal        @db.Decimal(20, 6)
+  settled     Decimal        @db.Decimal(20, 6)
+  refunded    Decimal        @db.Decimal(20, 6)
   status      ChannelStatus
-  openedAt    DateTime      @map("opened_at")
-  lastEventAt DateTime      @map("last_event_at")
-  closedAt    DateTime?     @map("closed_at")
+  openedAt    DateTime       @map("opened_at")
+  lastEventAt DateTime       @map("last_event_at")
+  closedAt    DateTime?      @map("closed_at")
   events      ChannelEvent[]
 
   @@index([openedAt])
@@ -44,19 +43,13 @@ model Channel {
   @@index([payee])
   @@index([deposit])
   @@index([settled])
-  // Index-only scan for the payer_first_seen materialized view refresh.
-  @@index([payer, status, openedAt])
   @@map("channels")
 }
 
 model ChannelEvent {
-  id        String           @id @default(cuid())
   channelId String           @map("channel_id")
   channel   Channel          @relation(fields: [channelId], references: [channelId])
   type      ChannelEventType
-  payer     String
-  payee     String
-  token     String
   txHash    String           @map("tx_hash")
   logIndex  Int              @map("log_index")
   blockNum  Int              @map("block_num")
@@ -64,7 +57,7 @@ model ChannelEvent {
   amounts   Json
   volume    Decimal          @default(0) @db.Decimal(20, 6)
 
-  @@unique([txHash, logIndex])
+  @@id([txHash, logIndex])
   @@index([channelId, blockNum, logIndex])
   @@index([ts])
   @@map("channel_events")
@@ -76,4 +69,32 @@ model SyncCursor {
   fromLogIndex Int @map("from_log_index")
 
   @@map("sync_cursor")
+}
+
+model ChannelDaily {
+  day      DateTime      @db.Date
+  status   ChannelStatus
+  sessions Int
+
+  @@id([day, status])
+  @@map("channel_daily")
+}
+
+model VolumeDaily {
+  day    DateTime      @db.Date
+  status ChannelStatus
+  volume Decimal       @db.Decimal(20, 6)
+  events Int
+
+  @@id([day, status])
+  @@map("volume_daily")
+}
+
+model PayerFirstSeen {
+  payer    String
+  status   ChannelStatus
+  firstDay DateTime      @map("first_day") @db.Date
+
+  @@id([payer, status])
+  @@map("payer_first_seen")
 }
